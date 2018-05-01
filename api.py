@@ -118,6 +118,9 @@ def source_code_model_indexer_drop_all_and_run_on_directory_request(handle):
 def source_code_model_indexer_find_all_references_request(handle, filename, line, col):
     _indexer_request(handle, SourceCodeModelIndexerRequestId.FIND_ALL_REFERENCES, filename, line, col)
 
+def source_code_model_auto_completion_request(handle, expression, filename, contents, line, col):
+    _source_code_model_request(handle, SourceCodeModelSubServiceId.AUTO_COMPLETION, expression, filename, contents, line, col)
+
 #
 # Project builder service API
 #
