@@ -2,6 +2,7 @@ from server import ServiceId
 from server import ServerRequestId
 from services.source_code_model_service import SourceCodeModelSubServiceId
 from services.source_code_model.indexer.clang_indexer import SourceCodeModelIndexerRequestId
+from services.source_code_model.auto_completion.auto_completion import SourceCodeModelAutoCompletionRequestId
 
 #
 # Server API
@@ -118,8 +119,11 @@ def source_code_model_indexer_drop_all_and_run_on_directory_request(handle):
 def source_code_model_indexer_find_all_references_request(handle, filename, line, col):
     _indexer_request(handle, SourceCodeModelIndexerRequestId.FIND_ALL_REFERENCES, filename, line, col)
 
-def source_code_model_auto_completion_request(handle, filename, contents, line, col, offset):
-    _source_code_model_request(handle, SourceCodeModelSubServiceId.AUTO_COMPLETION, filename, contents, line, col, offset)
+def source_code_model_auto_completion_code_complete_request(handle, filename, contents, line, col, offset):
+    _auto_completion_request(handle, SourceCodeModelAutoCompletionRequestId.CODE_COMPLETE, filename, contents, line, col, offset)
+
+def source_code_model_auto_completion_refine_candidates_request(handle, filename, contents, line, col, offset):
+    _auto_completion_request(handle, SourceCodeModelAutoCompletionRequestId.REFINE_CANDIDATES, filename, contents, line, col, offset)
 
 #
 # Project builder service API
@@ -175,4 +179,7 @@ def _source_code_model_request(handle, source_code_model_service_id, *source_cod
 
 def _indexer_request(handle, indexer_action_id, *args):
     _source_code_model_request(handle, SourceCodeModelSubServiceId.INDEXER, indexer_action_id, *args)
+
+def _auto_completion_request(handle, auto_completion_action_id, *args):
+    _source_code_model_request(handle, SourceCodeModelSubServiceId.AUTO_COMPLETION, auto_completion_action_id, *args)
 
