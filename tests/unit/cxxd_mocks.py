@@ -85,17 +85,8 @@ class TranslationUnitMock():
     def diagnostics(self):
         return self.diag
 
-class CodeCompletionResultsMock():
-    def __init__(self):
-        self.candidates = []
-
-    @property
-    def results(self):
-        return self.candidates
-
 class CxxdConfigParserMock():
     def get_blacklisted_directories(self):
         return []
-
     def get_extra_file_extensions(self):
         return []
