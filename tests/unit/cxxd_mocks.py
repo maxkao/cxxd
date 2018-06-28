@@ -84,11 +84,3 @@ class TranslationUnitMock():
     @property
     def diagnostics(self):
         return self.diag
-
-class CodeCompletionResultsMock():
-    def __init__(self):
-        self.candidates = []
-
-    @property
-    def results(self):
-        return self.candidates
