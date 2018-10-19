@@ -23,6 +23,7 @@ class SourceCodeModelIndexerRequestId():
     DROP_SINGLE_FILE          = 0x2
     DROP_ALL                  = 0x3
     FIND_ALL_REFERENCES       = 0x10
+    FETCH_ALL_DIAGNOSTICS     = 0x11
 
 class ClangIndexer(object):
     supported_ast_node_ids = [
@@ -40,11 +41,12 @@ class ClangIndexer(object):
         self.symbol_db              = SymbolDatabase(self.symbol_db_path) if self.symbol_db_exists() else SymbolDatabase()
         self.parser                 = parser
         self.op = {
-            SourceCodeModelIndexerRequestId.RUN_ON_SINGLE_FILE  : self.__run_on_single_file,
-            SourceCodeModelIndexerRequestId.RUN_ON_DIRECTORY    : self.__run_on_directory,
-            SourceCodeModelIndexerRequestId.DROP_SINGLE_FILE    : self.__drop_single_file,
-            SourceCodeModelIndexerRequestId.DROP_ALL            : self.__drop_all,
-            SourceCodeModelIndexerRequestId.FIND_ALL_REFERENCES : self.__find_all_references
+            SourceCodeModelIndexerRequestId.RUN_ON_SINGLE_FILE    : self.__run_on_single_file,
+            SourceCodeModelIndexerRequestId.RUN_ON_DIRECTORY      : self.__run_on_directory,
+            SourceCodeModelIndexerRequestId.DROP_SINGLE_FILE      : self.__drop_single_file,
+            SourceCodeModelIndexerRequestId.DROP_ALL              : self.__drop_all,
+            SourceCodeModelIndexerRequestId.FIND_ALL_REFERENCES   : self.__find_all_references,
+            SourceCodeModelIndexerRequestId.FETCH_ALL_DIAGNOSTICS : self.__fetch_all_diagnostics,
         }
 
     def symbol_db_exists(self):
@@ -210,6 +212,24 @@ class ClangIndexer(object):
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
         return tunit is not None and cursor is not None, references
+
+    def __fetch_all_diagnostics(self, id, args):
+        diagnostics = []
+        if self.symbol_db_exists():
+            self.symbol_db.open(self.symbol_db_path)
+            for diag in self.symbol_db.get_all_diagnostics():
+                diagnostics.append([
+                    os.path.join(self.root_directory, diag[0].encode('utf8', 'ignore')),
+                    diag[1],
+                    diag[2],
+                    diag[3].encode('utf8', 'ignore'),
+                    diag[4]
+                ])
+            logging.info("\n{0}".format('\n'.join(str(diag) for diag in diagnostics)))
+        else:
+            logging.error('Action cannot be run if symbol database does not exist yet!')
+        return True, diagnostics
+
 
 def index_file_list(root_directory, input_filename_list, compiler_args_filename, output_db_filename):
     symbol_db = SymbolDatabase(output_db_filename)
