@@ -215,7 +215,7 @@ class ClangIndexer(object):
         diagnostics = []
         if self.symbol_db_exists():
             self.symbol_db.open(self.symbol_db_path)
-            for diag in self.symbol_db.fetch_all_diagnostics():
+            for diag in self.symbol_db.fetch_all_diagnostics(int(args[0])):
                 diagnostics.append([
                     os.path.join(self.root_directory, self.symbol_db.get_diagnostics_filename(diag)),
                     self.symbol_db.get_diagnostics_line(diag),

@@ -2,6 +2,12 @@ import logging
 import sqlite3
 import sys
 
+class DiagnosticsSortingStrategyId():
+    BY_NONE          = 0x0
+    BY_SEVERITY_ASC  = 0x1
+    BY_SEVERITY_DESC = 0x2
+    BY_FILENAME      = 0x3
+
 class SymbolDatabase(object):
     VERSION_MAJOR = 0
     VERSION_MINOR = 2
@@ -103,11 +109,20 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
-    def fetch_all_diagnostics(self):
+    def fetch_all_diagnostics(self, sorting_strategy):
         rows = []
         try:
             # TODO Use generators
-            rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics').fetchall()
+            if sorting_strategy == DiagnosticsSortingStrategyId.BY_NONE:
+                rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics').fetchall()
+            elif sorting_strategy == DiagnosticsSortingStrategyId.BY_SEVERITY_ASC:
+                rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics ORDER BY severity ASC').fetchall()
+            elif sorting_strategy == DiagnosticsSortingStrategyId.BY_SEVERITY_DESC:
+                rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics ORDER BY severity DESC').fetchall()
+            elif sorting_strategy == DiagnosticsSortingStrategyId.BY_FILENAME:
+                rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics ORDER BY filename ASC').fetchall()
+            else:
+                logging.error('Inexisting diagnostics sorting strategy chosen!')
         except:
             logging.error(sys.exc_info())
         return rows
@@ -170,7 +185,7 @@ class SymbolDatabase(object):
                         symbol_db.get_symbol_kind(row),
                         symbol_db.get_symbol_is_definition(row)
                     )
-            rows = symbol_db.fetch_all_diagnostics()
+            rows = symbol_db.fetch_all_diagnostics(DiagnosticsSortingStrategyId.BY_NONE)
             if rows:
                 for row in rows:
                     self.insert_diagnostics_entry(
