@@ -185,6 +185,7 @@ class SymbolDatabase(object):
     def delete_all(self):
         try:
             self.db_connection.cursor().execute('DELETE FROM symbol')
+            self.db_connection.cursor().execute('DELETE FROM diagnostics')
         except:
             logging.error(sys.exc_info())
 
