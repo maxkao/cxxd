@@ -261,23 +261,30 @@ def indexer_visitor(ast_node, ast_parent_node, args):
                 ast_node.is_definition()
             )
             for diag in diagnostics:
-                if diag.location and diag.location.file:
-                    symbol_db.insert_diagnostics_entry(
-                        remove_root_dir_from_filename(root_directory, diag.location.file.name),
-                        diag.location.line,
-                        diag.location.column,
-                        diag.spelling,
-                        diag.severity
-                    )
+                diag_location = diag.location
+                if diag_location:
+                    diag_location_file = diag_location.file
+                    if diag_location_file:
+                        symbol_db.insert_diagnostics_entry(
+                            remove_root_dir_from_filename(root_directory, diag_location_file.name),
+                            diag_location.line,
+                            diag_location.column,
+                            diag.spelling,
+                            diag.severity
+                        )
+                    # Now do the same for children ...
                     for child_diagnostics in diag.children:
-                        if child_diagnostics.location and child_diagnostics.location.file:
-                            symbol_db.insert_diagnostics_entry(
-                                remove_root_dir_from_filename(root_directory, child_diagnostics.location.file.name),
-                                child_diagnostics.location.line,
-                                child_diagnostics.location.column,
-                                child_diagnostics.spelling,
-                                child_diagnostics.severity
-                            )
+                        diag_location = child_diagnostics.location
+                        if diag_location:
+                            diag_location_file = diag_location.file
+                            if diag_location_file:
+                                symbol_db.insert_diagnostics_entry(
+                                    remove_root_dir_from_filename(root_directory, diag_location_file.name),
+                                    diag_location.line,
+                                    diag_location.column,
+                                    child_diagnostics.spelling,
+                                    child_diagnostics.severity
+                                )
         return ChildVisitResult.RECURSE.value  # If we are positioned in TU of interest, then we'll traverse through all descendants
     return ChildVisitResult.CONTINUE.value  # Otherwise, we'll skip to the next sibling
 
