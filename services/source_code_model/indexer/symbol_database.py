@@ -173,7 +173,7 @@ class SymbolDatabase(object):
             rows = symbol_db.fetch_all_diagnostics()
             if rows:
                 for row in rows:
-                    self.insert_diagnostics(
+                    self.insert_diagnostics_entry(
                         symbol_db.get_diagnostics_filename(row),
                         symbol_db.get_diagnostics_line(row),
                         symbol_db.get_diagnostics_column(row),
