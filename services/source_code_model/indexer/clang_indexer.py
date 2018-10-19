@@ -245,9 +245,10 @@ def indexer_visitor(ast_node, ast_parent_node, args):
     parser, diagnostics, symbol_db, root_directory = args
     ast_node_location = ast_node.location
     ast_node_tunit_spelling = ast_node.translation_unit.spelling
+    ast_node_referenced = ast_node.referenced
     if ast_node_location.file and ast_node_location.file.name == ast_node_tunit_spelling:  # we are not interested in symbols which got into this TU via includes
         id = parser.get_ast_node_id(ast_node)
-        usr = ast_node.referenced.get_usr() if ast_node.referenced else ast_node.get_usr()
+        usr = ast_node.referenced.get_usr() if ast_node_referenced else ast_node.get_usr()
         line = int(parser.get_ast_node_line(ast_node))
         column = int(parser.get_ast_node_column(ast_node))
         if id in ClangIndexer.supported_ast_node_ids:
@@ -257,7 +258,7 @@ def indexer_visitor(ast_node, ast_parent_node, args):
                 column,
                 usr,
                 extract_cursor_context(ast_node_tunit_spelling, line),
-                ast_node.referenced._kind_id if ast_node.referenced else ast_node._kind_id,
+                ast_node_referenced._kind_id if ast_node_referenced else ast_node._kind_id,
                 ast_node.is_definition()
             )
             for diag in diagnostics:
