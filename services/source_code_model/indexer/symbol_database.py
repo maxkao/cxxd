@@ -189,6 +189,10 @@ class SymbolDatabase(object):
         except:
             logging.error(sys.exc_info())
 
+    def delete_entry(self, filename):
+        self.delete_symbol_entry(filename);
+        self.delete_diagnostics_entry(filename)
+
     def delete_symbol_entry(self, filename):
         try:
             self.db_connection.cursor().execute('DELETE FROM symbol WHERE filename=?', (filename,))

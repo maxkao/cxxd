@@ -69,8 +69,7 @@ class ClangIndexer(object):
             contents_filename = str(args[1])
             if contents_filename == original_filename: # Files modified but not saved will _NOT_ get indexed
                 self.symbol_db.open(self.symbol_db_path)
-                self.symbol_db.delete(remove_root_dir_from_filename(self.root_directory, original_filename))
-                self.symbol_db.delete_diagnostics(remove_root_dir_from_filename(self.root_directory, original_filename))
+                self.symbol_db.delete_entry(remove_root_dir_from_filename(self.root_directory, original_filename))
                 success = index_single_file(
                     self.parser,
                     self.root_directory,
@@ -78,7 +77,7 @@ class ClangIndexer(object):
                     original_filename,
                     self.symbol_db
                 )
-                # TODO what if index_single_file() fails? we should revert the symbol_db.delete() back
+                # TODO what if index_single_file() fails? we should revert the symbol_db.delete_entry() back
             else:
                 logging.warning('Indexing will not take place on existing files whose contents were modified but not saved.')
         else:
@@ -165,8 +164,7 @@ class ClangIndexer(object):
         if symbol_db_exists:
             filename = str(args[0])
             self.symbol_db.open(self.symbol_db_path)
-            self.symbol_db.delete(remove_root_dir_from_filename(self.root_directory, filename))
-            self.symbol_db.delete_diagnostics(remove_root_dir_from_filename(self.root_directory, original_filename))
+            self.symbol_db.delete_entry(remove_root_dir_from_filename(self.root_directory, filename))
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
         return symbol_db_exists, None
