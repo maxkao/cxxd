@@ -42,28 +42,43 @@ class SymbolDatabase(object):
     def is_open(self):
         return self.db_connection is not None
 
-    def get_filename(self, row):
+    def get_symbol_filename(self, row):
         return row[0].encode('utf8', 'ignore')
 
-    def get_line(self, row):
+    def get_symbol_line(self, row):
         return row[1]
 
-    def get_column(self, row):
+    def get_symbol_column(self, row):
         return row[2]
 
-    def get_usr(self, row):
+    def get_symbol_usr(self, row):
         return row[3].encode('utf8', 'ignore')
 
-    def get_context(self, row):
+    def get_symbol_context(self, row):
         return row[4].encode('utf8', 'ignore')
 
-    def get_kind(self, row):
+    def get_symbol_kind(self, row):
         return row[5]
 
-    def get_is_definition(self, row):
+    def get_symbol_is_definition(self, row):
         return row[6]
 
-    def get_all(self):
+    def get_diagnostics_filename(self, row):
+        return row[0].encode('utf8', 'ignore')
+
+    def get_diagnostics_line(self, row):
+        return row[1]
+
+    def get_diagnostics_column(self, row):
+        return row[2]
+
+    def get_diagnostics_description(self, row):
+        return row[3].encode('utf8', 'ignore')
+
+    def get_diagnostics_severity(self, row):
+        return row[4]
+
+    def fetch_all_symbols(self):
         rows = []
         try:
             # TODO Use generators
@@ -72,7 +87,7 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
-    def get_by_usr(self, usr):
+    def fetch_symbols_by_usr(self, usr):
         rows = []
         try:
             rows = self.db_connection.cursor().execute('SELECT * FROM symbol WHERE usr=?', (usr,)).fetchall()
@@ -80,7 +95,7 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
-    def get_definition(self, usr):
+    def fetch_symbol_definition_by_usr(self, usr):
         rows = []
         try:
             rows = self.db_connection.cursor().execute('SELECT * FROM symbol WHERE usr=? AND is_definition=1',(usr,)).fetchall()
@@ -88,7 +103,7 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
-    def get_all_diagnostics(self):
+    def fetch_all_diagnostics(self):
         rows = []
         try:
             # TODO Use generators
@@ -97,7 +112,7 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
-    def insert_single(self, filename, line, column, unique_id, context, symbol_kind, is_definition):
+    def insert_symbol_entry(self, filename, line, column, unique_id, context, symbol_kind, is_definition):
         try:
             if unique_id != '':
                 self.db_connection.cursor().execute('INSERT INTO symbol VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -120,7 +135,7 @@ class SymbolDatabase(object):
         except sqlite3.IntegrityError:
             pass # NOTE Very much expected to be triggered during indexer operation and not an error
 
-    def insert_diagnostics(self, filename, line, column, description, severity):
+    def insert_diagnostics_entry(self, filename, line, column, description, severity):
         try:
             self.db_connection.cursor().execute('INSERT INTO diagnostics VALUES (?, ?, ?, ?, ?)',
                 (
@@ -140,26 +155,30 @@ class SymbolDatabase(object):
         except sqlite3.IntegrityError:
             pass # NOTE Very much expected to be triggered during indexer operation and not an error
 
-    def insert_from(self, symbol_db_filename_list):
+    def copy_all_entries_from(self, symbol_db_filename_list):
         for db in symbol_db_filename_list:
             symbol_db = SymbolDatabase(db)
-            rows = symbol_db.get_all()
+            rows = symbol_db.fetch_all_symbols()
             if rows:
                 for row in rows:
-                    self.insert_single(
-                        symbol_db.get_filename(row),
-                        symbol_db.get_line(row),
-                        symbol_db.get_column(row),
-                        symbol_db.get_usr(row),
-                        symbol_db.get_context(row),
-                        symbol_db.get_kind(row),
-                        symbol_db.get_is_definition(row)
+                    self.insert_symbol_entry(
+                        symbol_db.get_symbol_filename(row),
+                        symbol_db.get_symbol_line(row),
+                        symbol_db.get_symbol_column(row),
+                        symbol_db.get_symbol_usr(row),
+                        symbol_db.get_symbol_context(row),
+                        symbol_db.get_symbol_kind(row),
+                        symbol_db.get_symbol_is_definition(row)
                     )
-            rows = symbol_db.get_all_diagnostics()
+            rows = symbol_db.fetch_all_diagnostics()
             if rows:
                 for row in rows:
                     self.insert_diagnostics(
-                        row[0].encode('utf8', 'ignore'), row[1], row[2], row[3].encode('utf8', 'ignore'), row[4]
+                        symbol_db.get_diagnostics_filename(row),
+                        symbol_db.get_diagnostics_line(row),
+                        symbol_db.get_diagnostics_column(row),
+                        symbol_db.get_diagnostics_description(row),
+                        symbol_db.get_diagnostics_severity(row)
                     )
             self.flush()
             symbol_db.close()
@@ -170,19 +189,19 @@ class SymbolDatabase(object):
         except:
             logging.error(sys.exc_info())
 
-    def delete(self, filename):
+    def delete_symbol_entry(self, filename):
         try:
             self.db_connection.cursor().execute('DELETE FROM symbol WHERE filename=?', (filename,))
         except:
             logging.error(sys.exc_info())
 
-    def delete_diagnostics(self, filename):
+    def delete_diagnostics_entry(self, filename):
         try:
             self.db_connection.cursor().execute('DELETE FROM diagnostics WHERE filename=?', (filename,))
         except:
             logging.error(sys.exc_info())
 
-    def delete_all(self):
+    def delete_all_entries(self):
         try:
             self.db_connection.cursor().execute('DELETE FROM symbol')
             self.db_connection.cursor().execute('DELETE FROM diagnostics')

@@ -1,14 +1,14 @@
 class SymbolDatabaseMock():
-    def get_definition(self, id):
+    def get_symbol_definition(self, id):
         pass
 
-    def get_filename(self, row):
+    def get_symbol_filename(self, row):
         pass
 
-    def get_line(self, row):
+    def get_symbol_line(self, row):
         pass
 
-    def get_column(self, row):
+    def get_symbol_column(self, row):
         pass
 
 class ServiceMock():

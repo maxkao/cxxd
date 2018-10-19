@@ -147,7 +147,7 @@ class ClangIndexer(object):
                 indexing_subprocess.wait()
 
             # Merge the results of indexing operations into the single symbol database
-            self.symbol_db.insert_from(symbol_db_list)
+            self.symbol_db.copy_all_entries_from(symbol_db_list)
 
             # Get rid of temporary symbol db's & indexer input list filenames
             for symbol_db, indexer_input in zip(symbol_db_list, indexer_input_list):
@@ -175,7 +175,7 @@ class ClangIndexer(object):
         symbol_db_exists = self.symbol_db_exists()
         if symbol_db_exists:
             self.symbol_db.open(self.symbol_db_path)
-            self.symbol_db.delete_all()
+            self.symbol_db.delete_all_entries()
             delete_file_from_disk = bool(args[0])
             if delete_file_from_disk:
                 self.symbol_db.close()
@@ -198,12 +198,12 @@ class ClangIndexer(object):
                 #      contrast contains an original filename).
                 usr = cursor.referenced.get_usr() if cursor.referenced else cursor.get_usr()
                 self.symbol_db.open(self.symbol_db_path)
-                for ref in self.symbol_db.get_by_usr(usr):
+                for ref in self.symbol_db.fetch_symbols_by_usr(usr):
                     references.append([
-                        os.path.join(self.root_directory, self.symbol_db.get_filename(ref)),
-                        self.symbol_db.get_line(ref),
-                        self.symbol_db.get_column(ref),
-                        self.symbol_db.get_context(ref)
+                        os.path.join(self.root_directory, self.symbol_db.get_symbol_filename(ref)),
+                        self.symbol_db.get_symbol_line(ref),
+                        self.symbol_db.get_symbol_column(ref),
+                        self.symbol_db.get_symbol_context(ref)
                     ])
                 logging.info("Find-all-references operation completed for '{0}', [{1}, {2}], '{3}'".format(
                     cursor.displayname, cursor.location.line, cursor.location.column, tunit.spelling)
@@ -217,13 +217,13 @@ class ClangIndexer(object):
         diagnostics = []
         if self.symbol_db_exists():
             self.symbol_db.open(self.symbol_db_path)
-            for diag in self.symbol_db.get_all_diagnostics():
+            for diag in self.symbol_db.fetch_all_diagnostics():
                 diagnostics.append([
-                    os.path.join(self.root_directory, diag[0].encode('utf8', 'ignore')),
-                    diag[1],
-                    diag[2],
-                    diag[3].encode('utf8', 'ignore'),
-                    diag[4]
+                    os.path.join(self.root_directory, self.symbol_db.get_diagnostics_filename(diag)),
+                    self.symbol_db.get_diagnostics_line(diag),
+                    self.symbol_db.get_diagnostics_column(diag),
+                    self.symbol_db.get_diagnostics_description(diag),
+                    self.symbol_db.get_diagnostics_severity(diag)
                 ])
             logging.info("\n{0}".format('\n'.join(str(diag) for diag in diagnostics)))
         else:
@@ -253,7 +253,7 @@ def indexer_visitor(ast_node, ast_parent_node, args):
         line = int(parser.get_ast_node_line(ast_node))
         column = int(parser.get_ast_node_column(ast_node))
         if id in ClangIndexer.supported_ast_node_ids:
-            symbol_db.insert_single(
+            symbol_db.insert_symbol_entry(
                 remove_root_dir_from_filename(root_directory, ast_node_tunit_spelling),
                 line,
                 column,
@@ -264,7 +264,7 @@ def indexer_visitor(ast_node, ast_parent_node, args):
             )
             for diag in diagnostics:
                 if diag.location and diag.location.file:
-                    symbol_db.insert_diagnostics(
+                    symbol_db.insert_diagnostics_entry(
                         remove_root_dir_from_filename(root_directory, diag.location.file.name),
                         diag.location.line,
                         diag.location.column,
@@ -273,7 +273,7 @@ def indexer_visitor(ast_node, ast_parent_node, args):
                     )
                     for child_diagnostics in diag.children:
                         if child_diagnostics.location and child_diagnostics.location.file:
-                            symbol_db.insert_diagnostics(
+                            symbol_db.insert_diagnostics_entry(
                                 remove_root_dir_from_filename(root_directory, child_diagnostics.location.file.name),
                                 child_diagnostics.location.line,
                                 child_diagnostics.location.column,
