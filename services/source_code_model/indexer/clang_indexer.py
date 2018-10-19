@@ -68,6 +68,7 @@ class ClangIndexer(object):
             if contents_filename == original_filename: # Files modified but not saved will _NOT_ get indexed
                 self.symbol_db.open(self.symbol_db_path)
                 self.symbol_db.delete(remove_root_dir_from_filename(self.root_directory, original_filename))
+                self.symbol_db.delete_diagnostics(remove_root_dir_from_filename(self.root_directory, original_filename))
                 success = index_single_file(
                     self.parser,
                     self.root_directory,
@@ -163,6 +164,7 @@ class ClangIndexer(object):
             filename = str(args[0])
             self.symbol_db.open(self.symbol_db_path)
             self.symbol_db.delete(remove_root_dir_from_filename(self.root_directory, filename))
+            self.symbol_db.delete_diagnostics(remove_root_dir_from_filename(self.root_directory, original_filename))
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
         return symbol_db_exists, None
@@ -222,7 +224,7 @@ def indexer_visitor(ast_node, ast_parent_node, args):
     def extract_cursor_context(filename, line):
         return linecache.getline(filename, line)
 
-    parser, symbol_db, root_directory = args
+    parser, diagnostics, symbol_db, root_directory = args
     ast_node_location = ast_node.location
     ast_node_tunit_spelling = ast_node.translation_unit.spelling
     if ast_node_location.file and ast_node_location.file.name == ast_node_tunit_spelling:  # we are not interested in symbols which got into this TU via includes
@@ -240,6 +242,24 @@ def indexer_visitor(ast_node, ast_parent_node, args):
                 ast_node.referenced._kind_id if ast_node.referenced else ast_node._kind_id,
                 ast_node.is_definition()
             )
+            for diag in diagnostics:
+                if diag.location and diag.location.file:
+                    symbol_db.insert_diagnostics(
+                        remove_root_dir_from_filename(root_directory, diag.location.file.name),
+                        diag.location.line,
+                        diag.location.column,
+                        diag.spelling,
+                        diag.severity
+                    )
+                    for child_diagnostics in diag.children:
+                        if child_diagnostics.location and child_diagnostics.location.file:
+                            symbol_db.insert_diagnostics(
+                                remove_root_dir_from_filename(root_directory, child_diagnostics.location.file.name),
+                                child_diagnostics.location.line,
+                                child_diagnostics.location.column,
+                                child_diagnostics.spelling,
+                                child_diagnostics.severity
+                            )
         return ChildVisitResult.RECURSE.value  # If we are positioned in TU of interest, then we'll traverse through all descendants
     return ChildVisitResult.CONTINUE.value  # Otherwise, we'll skip to the next sibling
 
@@ -247,7 +267,7 @@ def index_single_file(parser, root_directory, contents_filename, original_filena
     logging.info("Indexing a file '{0}' ... ".format(original_filename))
     tunit = parser.parse(contents_filename, original_filename)
     if tunit:
-        parser.traverse(tunit.cursor, [parser, symbol_db, root_directory], indexer_visitor)
+        parser.traverse(tunit.cursor, [parser, tunit.diagnostics, symbol_db, root_directory], indexer_visitor)
         symbol_db.flush()
     logging.info("Indexing of {0} completed.".format(original_filename))
     return tunit is not None
