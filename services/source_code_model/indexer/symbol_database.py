@@ -155,7 +155,13 @@ class SymbolDatabase(object):
                         symbol_db.get_kind(row),
                         symbol_db.get_is_definition(row)
                     )
-                self.flush()
+            rows = symbol_db.get_all_diagnostics()
+            if rows:
+                for row in rows:
+                    self.insert_diagnostics(
+                        row[0].encode('utf8', 'ignore'), row[1], row[2], row[3].encode('utf8', 'ignore'), row[4]
+                    )
+            self.flush()
             symbol_db.close()
 
     def flush(self):
