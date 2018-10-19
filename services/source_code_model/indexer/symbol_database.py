@@ -88,6 +88,15 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
+    def get_all_diagnostics(self):
+        rows = []
+        try:
+            # TODO Use generators
+            rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics').fetchall()
+        except:
+            logging.error(sys.exc_info())
+        return rows
+
     def insert_single(self, filename, line, column, unique_id, context, symbol_kind, is_definition):
         try:
             if unique_id != '':
