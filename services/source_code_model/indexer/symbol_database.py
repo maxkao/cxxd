@@ -162,6 +162,16 @@ class SymbolDatabase(object):
                  )'
             )
             self.db_connection.cursor().execute(
+                'CREATE TABLE IF NOT EXISTS diagnostics ( \
+                    filename        text,            \
+                    line            integer,         \
+                    column          integer,         \
+                    description     text,            \
+                    severity        integer,         \
+                    PRIMARY KEY(filename, line, column, description) \
+                 )'
+            )
+            self.db_connection.cursor().execute(
                 'CREATE TABLE IF NOT EXISTS version ( \
                     major integer,            \
                     minor integer,            \
