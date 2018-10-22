@@ -259,6 +259,17 @@ class SymbolDatabase(object):
                         symbol_db.get_diagnostics_description(row),
                         symbol_db.get_diagnostics_severity(row)
                     )
+            rows = symbol_db.fetch_all_diagnostics_details()
+            if rows:
+                for row in rows:
+                    self.insert_diagnostics_details_entry(
+                        symbol_db.get_diagnostics_details_id(row),
+                        symbol_db.get_diagnostics_details_filename(row),
+                        symbol_db.get_diagnostics_details_line(row),
+                        symbol_db.get_diagnostics_details_column(row),
+                        symbol_db.get_diagnostics_details_description(row),
+                        symbol_db.get_diagnostics_details_severity(row)
+                    )
             self.flush()
             symbol_db.close()
 
