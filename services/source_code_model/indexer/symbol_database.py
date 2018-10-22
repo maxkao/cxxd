@@ -254,6 +254,18 @@ class SymbolDatabase(object):
                  )'
             )
             self.db_connection.cursor().execute(
+                'CREATE TABLE IF NOT EXISTS diagnostics_details ( \
+                    diagnostics_id  integer,         \
+                    filename        text,            \
+                    line            integer,         \
+                    column          integer,         \
+                    description     text,            \
+                    severity        integer,         \
+                    PRIMARY KEY(filename, line, column, description), \
+                    FOREIGN KEY(diagnostics_id) REFERENCES diagnostics(id) ON DELETE CASCADE \
+                 )'
+            )
+            self.db_connection.cursor().execute(
                 'CREATE TABLE IF NOT EXISTS version ( \
                     major integer,            \
                     minor integer,            \
