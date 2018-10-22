@@ -87,6 +87,23 @@ class SymbolDatabase(object):
     def get_diagnostics_severity(self, row):
         return row[5]
 
+    def get_diagnostics_details_id(self, row):
+        return row[0]
+
+    def get_diagnostics_details_filename(self, row):
+        return row[1].encode('utf8', 'ignore')
+
+    def get_diagnostics_details_line(self, row):
+        return row[2]
+
+    def get_diagnostics_details_column(self, row):
+        return row[3]
+
+    def get_diagnostics_details_description(self, row):
+        return row[4].encode('utf8', 'ignore')
+
+    def get_diagnostics_details_severity(self, row):
+        return row[5]
 
     def fetch_all_symbols(self):
         rows = []
