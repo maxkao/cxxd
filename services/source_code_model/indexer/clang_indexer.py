@@ -223,6 +223,14 @@ class ClangIndexer(object):
                     self.symbol_db.get_diagnostics_description(diag),
                     self.symbol_db.get_diagnostics_severity(diag)
                 ])
+                for detail in self.symbol_db.fetch_diagnostics_details(self.symbol_db.get_diagnostics_id(diag)):
+                    diagnostics.append([
+                        os.path.join(self.root_directory, self.symbol_db.get_diagnostics_details_filename(detail)),
+                        self.symbol_db.get_diagnostics_details_line(detail),
+                        self.symbol_db.get_diagnostics_details_column(detail),
+                        self.symbol_db.get_diagnostics_details_description(detail),
+                        self.symbol_db.get_diagnostics_details_severity(detail)
+                    ])
             logging.info("\n{0}".format('\n'.join(str(diag) for diag in diagnostics)))
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
