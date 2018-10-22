@@ -148,6 +148,24 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
+    def fetch_diagnostics_details(self, diagnostics_id):
+        rows = []
+        try:
+            # TODO Use generators
+            rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics_details WHERE diagnostics_id = ?', diagnostics_id).fetchall()
+        except:
+            logging.error(sys.exc_info())
+        return rows
+
+    def fetch_all_diagnostics_details(self):
+        rows = []
+        try:
+            # TODO Use generators
+            rows = self.db_connection.cursor().execute('SELECT * FROM diagnostics_details').fetchall()
+        except:
+            logging.error(sys.exc_info())
+        return rows
+
     def insert_symbol_entry(self, filename, line, column, unique_id, context, symbol_kind, is_definition):
         try:
             if unique_id != '':
