@@ -195,6 +195,27 @@ class SymbolDatabase(object):
             pass # NOTE Very much expected to be triggered during indexer operation and not an error
         return diagnostics_id
 
+    def insert_diagnostics_details_entry(self, diagnostics_id, filename, line, column, description, severity):
+        try:
+            self.db_connection.cursor().execute('INSERT INTO diagnostics_details VALUES (?, ?, ?, ?, ?, ?)',
+                (
+                    diagnostics_id,
+                    filename.decode('utf8') if isinstance(filename, str) else filename,     # NOTE Decoding an already UTF-8 encoded
+                    line,                                                                   #      string (unicode) raises an exception.
+                    column,                                                                 #      Therefore 'isinstance' check.
+                    description.decode('utf8') if isinstance(description, str) else description,
+                    severity,
+                )
+            )
+        except sqlite3.ProgrammingError as e:
+            logging.error(
+                'Failed to insert \'[{0}, {1}, {2}, {3}, {4}, {5}]\' into the database. Exception details: \'{5}\''.format(
+                    diagnostics_id, filename, line, column, description, severity, e
+                )
+            )
+        except sqlite3.IntegrityError:
+            pass # NOTE Very much expected to be triggered during indexer operation and not an error
+
     def copy_all_entries_from(self, symbol_db_filename_list):
         for db in symbol_db_filename_list:
             symbol_db = SymbolDatabase(db)
