@@ -282,21 +282,21 @@ def indexer_visitor(ast_node, ast_parent_node, args):
                             diag.spelling,
                             diag.severity
                         )
-                if diagnostics_id is not None:
-                    # Now do the same for children ...
-                    for child_diagnostics in diag.children:
-                        diag_location = child_diagnostics.location
-                        if diag_location:
-                            diag_location_file = diag_location.file
-                            if diag_location_file:
-                                symbol_db.insert_diagnostics_details_entry(
-                                    diagnostics_id,
-                                    remove_root_dir_from_filename(root_directory, diag_location_file.name),
-                                    diag_location.line,
-                                    diag_location.column,
-                                    child_diagnostics.spelling,
-                                    child_diagnostics.severity
-                                )
+                        if diagnostics_id is not None:
+                            # Now do the same for children ...
+                            for child_diagnostics in diag.children:
+                                diag_location = child_diagnostics.location
+                                if diag_location:
+                                    diag_location_file = diag_location.file
+                                    if diag_location_file:
+                                        symbol_db.insert_diagnostics_details_entry(
+                                            diagnostics_id,
+                                            remove_root_dir_from_filename(root_directory, diag_location_file.name),
+                                            diag_location.line,
+                                            diag_location.column,
+                                            child_diagnostics.spelling,
+                                            child_diagnostics.severity
+                                        )
         return ChildVisitResult.RECURSE.value  # If we are positioned in TU of interest, then we'll traverse through all descendants
     return ChildVisitResult.CONTINUE.value  # Otherwise, we'll skip to the next sibling
 
