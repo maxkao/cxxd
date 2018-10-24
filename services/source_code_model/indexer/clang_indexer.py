@@ -239,6 +239,14 @@ class ClangIndexer(object):
         return db_exists, diagnostics
 
 
+    def __symbol_db_schema_changed(self):
+        if self.symbol_db_exists():
+            self.symbol_db.open(self.symbol_db_path)
+            current_major_number, current_minor_number = self.symbol_db.fetch_schema_version()
+            if current_major_number != self.symbol_db.VERSION_MAJOR or current_minor_number != self.symbol_db.VERSION_MINOR:
+                return True
+        return False
+
 def index_file_list(root_directory, input_filename_list, compiler_args_filename, output_db_filename):
     symbol_db = SymbolDatabase(output_db_filename)
     symbol_db.create_data_model()
