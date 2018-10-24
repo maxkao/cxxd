@@ -250,7 +250,7 @@ def indexer_visitor(ast_node, ast_parent_node, args):
     def extract_cursor_context(filename, line):
         return linecache.getline(filename, line)
 
-    parser, diagnostics, symbol_db, root_directory = args
+    parser, symbol_db, root_directory = args
     ast_node_location = ast_node.location
     ast_node_tunit_spelling = ast_node.translation_unit.spelling
     ast_node_referenced = ast_node.referenced
@@ -269,34 +269,6 @@ def indexer_visitor(ast_node, ast_parent_node, args):
                 ast_node_referenced._kind_id if ast_node_referenced else ast_node._kind_id,
                 ast_node.is_definition()
             )
-            for diag in diagnostics:
-                diagnostics_id = None
-                diag_location = diag.location
-                if diag_location:
-                    diag_location_file = diag_location.file
-                    if diag_location_file:
-                        diagnostics_id = symbol_db.insert_diagnostics_entry(
-                            remove_root_dir_from_filename(root_directory, diag_location_file.name),
-                            diag_location.line,
-                            diag_location.column,
-                            diag.spelling,
-                            diag.severity
-                        )
-                        if diagnostics_id is not None:
-                            # Now do the same for children ...
-                            for child_diagnostics in diag.children:
-                                diag_location = child_diagnostics.location
-                                if diag_location:
-                                    diag_location_file = diag_location.file
-                                    if diag_location_file:
-                                        symbol_db.insert_diagnostics_details_entry(
-                                            diagnostics_id,
-                                            remove_root_dir_from_filename(root_directory, diag_location_file.name),
-                                            diag_location.line,
-                                            diag_location.column,
-                                            child_diagnostics.spelling,
-                                            child_diagnostics.severity
-                                        )
         return ChildVisitResult.RECURSE.value  # If we are positioned in TU of interest, then we'll traverse through all descendants
     return ChildVisitResult.CONTINUE.value  # Otherwise, we'll skip to the next sibling
 
@@ -304,10 +276,41 @@ def index_single_file(parser, root_directory, contents_filename, original_filena
     logging.info("Indexing a file '{0}' ... ".format(original_filename))
     tunit = parser.parse(contents_filename, original_filename)
     if tunit:
-        parser.traverse(tunit.cursor, [parser, tunit.diagnostics, symbol_db, root_directory], indexer_visitor)
+        parser.traverse(tunit.cursor, [parser, symbol_db, root_directory], indexer_visitor)
+        store_tunit_diagnostics(tunit.diagnostics, symbol_db, root_directory)
         symbol_db.flush()
     logging.info("Indexing of {0} completed.".format(original_filename))
     return tunit is not None
+
+def store_tunit_diagnostics(diagnostics, symbol_db, root_directory):
+    for diag in diagnostics:
+        diagnostics_id = None
+        diag_location = diag.location
+        if diag_location:
+            diag_location_file = diag_location.file
+            if diag_location_file:
+                diagnostics_id = symbol_db.insert_diagnostics_entry(
+                    remove_root_dir_from_filename(root_directory, diag_location_file.name),
+                    diag_location.line,
+                    diag_location.column,
+                    diag.spelling,
+                    diag.severity
+                )
+                if diagnostics_id is not None:
+                    # Now do the same for children ...
+                    for child_diagnostics in diag.children:
+                        diag_location = child_diagnostics.location
+                        if diag_location:
+                            diag_location_file = diag_location.file
+                            if diag_location_file:
+                                symbol_db.insert_diagnostics_details_entry(
+                                    diagnostics_id,
+                                    remove_root_dir_from_filename(root_directory, diag_location_file.name),
+                                    diag_location.line,
+                                    diag_location.column,
+                                    child_diagnostics.spelling,
+                                    child_diagnostics.severity
+                                )
 
 def remove_root_dir_from_filename(root_dir, full_path):
     return full_path[len(root_dir):].lstrip(os.sep)
