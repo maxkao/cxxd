@@ -166,6 +166,14 @@ class SymbolDatabase(object):
             logging.error(sys.exc_info())
         return rows
 
+    def fetch_schema_version(self):
+        rows = []
+        try:
+            rows = self.db_connection.cursor().execute('SELECT * FROM version').fetchall()
+        except:
+            logging.error(sys.exc_info())
+        return rows[0][0], rows[0][1]
+
     def insert_symbol_entry(self, filename, line, column, unique_id, context, symbol_kind, is_definition):
         try:
             if unique_id != '':
