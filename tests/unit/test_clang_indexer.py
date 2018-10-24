@@ -139,11 +139,30 @@ class ClangIndexerTest(unittest.TestCase):
         self.assertEqual(success, False)
         self.assertEqual(args, None)
 
-    def test_if_run_on_directory_skips_indexing_if_symbol_db_already_exists_in_root_directory(self):
-        with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
-            with mock.patch.object(self.service.symbol_db, 'open') as mock_symbol_db_open:
-                with mock.patch.object(self.service.symbol_db, 'create_data_model') as mock_symbol_db_create_data_model:
+    def test_if_run_on_directory_checks_for_symbol_db_schema_change(self):
+        with mock.patch.object(self.service, 'symbol_db_schema_changed', return_value=False) as mock_symbol_db_schema_changed:
+            with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
+                success, args = self.service([SourceCodeModelIndexerRequestId.RUN_ON_DIRECTORY])
+        mock_symbol_db_schema_changed.assert_called_once()
+        self.assertEqual(success, True)
+        self.assertEqual(args, None)
+
+    def test_if_run_on_directory_drops_the_db_when_symbol_db_schema_gets_changed(self):
+        with mock.patch.object(self.service, 'symbol_db_schema_changed', return_value=True) as mock_symbol_db_schema_changed:
+            with mock.patch.object(self.service, '_ClangIndexer__drop_all') as mock_drop_all:
+                with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
                     success, args = self.service([SourceCodeModelIndexerRequestId.RUN_ON_DIRECTORY])
+        mock_symbol_db_schema_changed.assert_called_once()
+        mock_drop_all.assert_called_once()
+        self.assertEqual(success, True)
+        self.assertEqual(args, None)
+
+    def test_if_run_on_directory_skips_indexing_if_symbol_db_already_exists_in_root_directory(self):
+        with mock.patch.object(self.service, 'symbol_db_schema_changed', return_value=False) as mock_symbol_db_schema_changed:
+            with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
+                with mock.patch.object(self.service.symbol_db, 'open') as mock_symbol_db_open:
+                    with mock.patch.object(self.service.symbol_db, 'create_data_model') as mock_symbol_db_create_data_model:
+                        success, args = self.service([SourceCodeModelIndexerRequestId.RUN_ON_DIRECTORY])
         mock_symbol_db_open.assert_not_called()
         mock_symbol_db_create_data_model.assert_not_called()
         self.assertEqual(success, True)
