@@ -213,7 +213,8 @@ class ClangIndexer(object):
 
     def __fetch_all_diagnostics(self, id, args):
         diagnostics = []
-        if self.symbol_db_exists():
+        db_exists = self.symbol_db_exists()
+        if db_exists:
             self.symbol_db.open(self.symbol_db_path)
             for diag in self.symbol_db.fetch_all_diagnostics(int(args[0])):
                 diagnostics.append([
@@ -234,7 +235,7 @@ class ClangIndexer(object):
             logging.info("\n{0}".format('\n'.join(str(diag) for diag in diagnostics)))
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
-        return True, diagnostics
+        return db_exists, diagnostics
 
 
 def index_file_list(root_directory, input_filename_list, compiler_args_filename, output_db_filename):
