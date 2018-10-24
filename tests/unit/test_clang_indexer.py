@@ -341,6 +341,69 @@ class ClangIndexerTest(unittest.TestCase):
         filename = references[0][0]
         self.assertEqual(filename.startswith(self.root_directory), True)
 
+    def test_if_fetch_all_diagnostics_returns_false_and_empty_diagnostics_list_on_inexisting_symbol_db(self):
+        sorting_strategy = 0 # No sorting
+        with mock.patch.object(self.service, 'symbol_db_exists', return_value=False):
+            success, diagnostics = self.service([SourceCodeModelIndexerRequestId.FETCH_ALL_DIAGNOSTICS, sorting_strategy])
+        self.assertEqual(success, False)
+        self.assertEqual(len(diagnostics), 0)
+
+    def test_if_fetch_all_diagnostics_returns_true_and_empty_diagnostics_list_when_no_diagnostics_are_available_and_does_not_fetch_additional_diagnostics_details(self):
+        sorting_strategy = 0 # No sorting
+        with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
+            with mock.patch.object(self.service.symbol_db, 'open') as mock_symbol_db_open:
+                with mock.patch.object(self.service.symbol_db, 'fetch_all_diagnostics', return_value=[]) as mock_symbol_db_fetch_all_diagnostics:
+                    with mock.patch.object(self.service.symbol_db, 'fetch_diagnostics_details', return_value=[]) as mock_symbol_db_fetch_all_diagnostics_details:
+                        success, diagnostics = self.service([SourceCodeModelIndexerRequestId.FETCH_ALL_DIAGNOSTICS, sorting_strategy])
+        mock_symbol_db_open.assert_called_once()
+        mock_symbol_db_fetch_all_diagnostics.assert_called_once()
+        mock_symbol_db_fetch_all_diagnostics_details.assert_not_called()
+        self.assertEqual(success, True)
+        self.assertEqual(len(diagnostics), 0)
+
+    def test_if_fetch_all_diagnostics_returns_true_and_non_empty_diagnostics_list_and_does_not_fetch_additional_diagnostics_details_because_there_are_no_any(self):
+        sorting_strategy = 0 # No sorting
+        diagnostics_from_db = [
+            [1, 'filename1', 1, 1, 'diag description 1', 1],
+            [2, 'filename2', 2, 2, 'diag description 2', 2],
+            [3, 'filename3', 3, 3, 'diag description 3', 2],
+            [4, 'filename4', 4, 4, 'diag description 4', 3],
+            [5, 'filename5', 5, 5, 'diag description 5', 3],
+            [6, 'filename6', 6, 6, 'diag description 6', 4],
+        ]
+        with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
+            with mock.patch.object(self.service.symbol_db, 'open') as mock_symbol_db_open:
+                with mock.patch.object(self.service.symbol_db, 'fetch_all_diagnostics', return_value=diagnostics_from_db) as mock_symbol_db_fetch_all_diagnostics:
+                    with mock.patch.object(self.service.symbol_db, 'fetch_diagnostics_details', return_value=[]) as mock_symbol_db_fetch_all_diagnostics_details:
+                        success, diagnostics = self.service([SourceCodeModelIndexerRequestId.FETCH_ALL_DIAGNOSTICS, sorting_strategy])
+        mock_symbol_db_open.assert_called_once()
+        mock_symbol_db_fetch_all_diagnostics.assert_called_once()
+        mock_symbol_db_fetch_all_diagnostics_details.assert_not_called()
+        self.assertEqual(success, True)
+        self.assertEqual(len(diagnostics), len(diagnostics_from_db))
+
+    def test_if_fetch_all_diagnostics_returns_true_and_non_empty_diagnostics_list_and_does_not_fetch_additional_diagnostics_details_because_there_are_no_any(self):
+        sorting_strategy = 0 # No sorting
+        diagnostics_from_db = [
+            [1, 'filename1', 1, 1, 'diag description 1', 1],
+            [2, 'filename2', 2, 2, 'diag description 2', 2],
+            [3, 'filename3', 3, 3, 'diag description 3', 2],
+            [4, 'filename4', 4, 4, 'diag description 4', 3],
+            [5, 'filename5', 5, 5, 'diag description 5', 3],
+            [6, 'filename6', 6, 6, 'diag description 6', 4],
+        ]
+        with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
+            with mock.patch.object(self.service.symbol_db, 'open') as mock_symbol_db_open:
+                with mock.patch.object(self.service.symbol_db, 'fetch_all_diagnostics', return_value=diagnostics_from_db) as mock_symbol_db_fetch_all_diagnostics:
+                    with mock.patch.object(self.service.symbol_db, 'fetch_diagnostics_details', return_value=diagnostics_from_db) as mock_symbol_db_fetch_all_diagnostics_details:
+                        success, diagnostics = self.service([SourceCodeModelIndexerRequestId.FETCH_ALL_DIAGNOSTICS, sorting_strategy])
+        mock_symbol_db_open.assert_called_once()
+        mock_symbol_db_fetch_all_diagnostics.assert_called_once()
+        mock_symbol_db_fetch_all_diagnostics_details.assert_called()
+        self.assertEqual(mock_symbol_db_fetch_all_diagnostics_details.call_count, len(diagnostics_from_db))
+        self.assertEqual(success, True)
+        self.assertEqual(len(diagnostics), len(diagnostics_from_db) + len(diagnostics_from_db)**2)
+
     def test_if_index_file_list_runs_indexing_for_each_of_the_files_given(self):
         input_filename_list = ['/tmp/a.cpp', '/tmp/b.cpp', '/tmp/c.cpp', '/tmp/d.cpp', '/tmp/e.cpp', '/tmp/f.cpp', '/tmp/g.cpp']
         output_db_filename = 'out.db'
