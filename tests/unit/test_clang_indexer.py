@@ -245,7 +245,7 @@ class ClangIndexerTest(unittest.TestCase):
         self.assertEqual(success, True)
         self.assertEqual(args, None)
 
-    def test_if_drop_all_deletes_all_entries_from_symbol_db_and_deletes_the_db_from_disk(self):
+    def test_if_drop_all_does_not_delete_all_entries_from_symbol_db_but_deletes_the_db_from_disk(self):
         delete_from_disk = True
         with mock.patch.object(self.service, 'symbol_db_exists', return_value=True):
             with mock.patch.object(self.service.symbol_db, 'open') as mock_symbol_db_open:
@@ -253,8 +253,8 @@ class ClangIndexerTest(unittest.TestCase):
                     with mock.patch.object(self.service.symbol_db, 'close') as mock_symbol_db_close:
                         with mock.patch('os.remove') as mock_os_remove:
                             success, args = self.service([SourceCodeModelIndexerRequestId.DROP_ALL, delete_from_disk])
-        mock_symbol_db_open.assert_called_with(self.service.symbol_db_path)
-        mock_symbol_db_delete_all_entries.assert_called_once()
+        mock_symbol_db_open.assert_not_called()
+        mock_symbol_db_delete_all_entries.assert_not_called()
         mock_symbol_db_close.assert_called_once()
         mock_os_remove.assert_called_once_with(self.service.symbol_db.filename)
         self.assertEqual(success, True)
