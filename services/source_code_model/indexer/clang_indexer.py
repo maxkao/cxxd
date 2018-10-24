@@ -172,12 +172,13 @@ class ClangIndexer(object):
     def __drop_all(self, id, args):
         symbol_db_exists = self.symbol_db_exists()
         if symbol_db_exists:
-            self.symbol_db.open(self.symbol_db_path)
-            self.symbol_db.delete_all_entries()
             delete_file_from_disk = bool(args[0])
             if delete_file_from_disk:
                 self.symbol_db.close()
                 os.remove(self.symbol_db.filename)
+            else:
+                self.symbol_db.open(self.symbol_db_path)
+                self.symbol_db.delete_all_entries()
             logging.info('Indexer DB dropped.')
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
