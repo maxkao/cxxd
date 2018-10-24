@@ -188,6 +188,8 @@ class SymbolDatabase(object):
             )
         except sqlite3.IntegrityError:
             pass # NOTE Very much expected to be triggered during indexer operation and not an error
+        except:
+            logging.error('Unexpected exception {0}'.format(sys.exc_info()))
 
     def insert_diagnostics_entry(self, filename, line, column, description, severity):
         diagnostics_id = None
@@ -211,6 +213,8 @@ class SymbolDatabase(object):
             )
         except sqlite3.IntegrityError:
             pass # NOTE Very much expected to be triggered during indexer operation and not an error
+        except:
+            logging.error('Unexpected exception {0}'.format(sys.exc_info()))
         return diagnostics_id
 
     def insert_diagnostics_details_entry(self, diagnostics_id, filename, line, column, description, severity):
@@ -233,6 +237,8 @@ class SymbolDatabase(object):
             )
         except sqlite3.IntegrityError:
             pass # NOTE Very much expected to be triggered during indexer operation and not an error
+        except:
+            logging.error('Unexpected exception {0}'.format(sys.exc_info()))
 
     def copy_all_entries_from(self, symbol_db_filename_list):
         for db in symbol_db_filename_list:
