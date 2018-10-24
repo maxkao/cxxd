@@ -94,6 +94,7 @@ class ClangIndexer(object):
 
     def __run_on_directory(self, id, args):
         if self.symbol_db_schema_changed():
+            logging.warning('Detected symbol database schema change! About to drop the current one and re-create a new one ...')
             self.__drop_all(0, (True,))
 
         if not self.symbol_db_exists():
