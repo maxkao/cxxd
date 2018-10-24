@@ -206,7 +206,7 @@ class ClangIndexer(object):
                 logging.info("Find-all-references operation completed for '{0}', [{1}, {2}], '{3}'".format(
                     cursor.displayname, cursor.location.line, cursor.location.column, tunit.spelling)
                 )
-            logging.info("\n{0}".format('\n'.join(str(ref) for ref in references)))
+            logging.debug("\n{0}".format('\n'.join(str(ref) for ref in references)))
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
         return tunit is not None and cursor is not None, references
@@ -232,7 +232,7 @@ class ClangIndexer(object):
                         self.symbol_db.get_diagnostics_details_description(detail),
                         self.symbol_db.get_diagnostics_details_severity(detail)
                     ])
-            logging.info("\n{0}".format('\n'.join(str(diag) for diag in diagnostics)))
+            logging.debug("\n{0}".format('\n'.join(str(diag) for diag in diagnostics)))
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
         return db_exists, diagnostics
