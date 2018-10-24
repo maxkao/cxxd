@@ -1,7 +1,4 @@
 class SymbolDatabaseMock():
-    def get_symbol_definition(self, id):
-        pass
-
     def get_symbol_filename(self, row):
         pass
 
@@ -9,6 +6,9 @@ class SymbolDatabaseMock():
         pass
 
     def get_symbol_column(self, row):
+        pass
+
+    def fetch_symbol_definition_by_usr(self, usr):
         pass
 
 class ServiceMock():
@@ -49,11 +49,38 @@ class SourceLocationMock():
     def file(self):
         return self.file
 
+class DiagnosticMock():
+    def __init__(self, location, spelling, severity, children):
+        self._location = location
+        self._spelling = spelling
+        self._severity = severity
+        self._children = children
+
+    @property
+    def location(self):
+        return self._location
+
+    @property
+    def spelling(self):
+        return self._spelling
+
+    @property
+    def severity(self):
+        return self._severity
+
+    @property
+    def children(self):
+        return self._children
+
 class TranslationUnitMock():
-    def __init__(self, filename):
+    def __init__(self, filename, diagnostics=None):
         self.filename = filename
+        self.diag = diagnostics
 
     @property
     def spelling(self):
         return self.filename
 
+    @property
+    def diagnostics(self):
+        return self.diag
