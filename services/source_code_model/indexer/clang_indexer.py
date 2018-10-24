@@ -55,6 +55,14 @@ class ClangIndexer(object):
     def get_symbol_db(self):
         return self.symbol_db
 
+    def symbol_db_schema_changed(self):
+        if self.symbol_db_exists():
+            self.symbol_db.open(self.symbol_db_path)
+            current_major_number, current_minor_number = self.symbol_db.fetch_schema_version()
+            if current_major_number != self.symbol_db.VERSION_MAJOR or current_minor_number != self.symbol_db.VERSION_MINOR:
+                return True
+        return False
+
     def __call__(self, args):
         return self.op.get(int(args[0]), self.__unknown_op)(int(args[0]), args[1:len(args)])
 
@@ -85,7 +93,7 @@ class ClangIndexer(object):
         return success, None
 
     def __run_on_directory(self, id, args):
-        if self.__symbol_db_schema_changed():
+        if self.symbol_db_schema_changed():
             self.__drop_all(0, (True,))
 
         if not self.symbol_db_exists():
@@ -241,14 +249,6 @@ class ClangIndexer(object):
             logging.error('Action cannot be run if symbol database does not exist yet!')
         return db_exists, diagnostics
 
-
-    def __symbol_db_schema_changed(self):
-        if self.symbol_db_exists():
-            self.symbol_db.open(self.symbol_db_path)
-            current_major_number, current_minor_number = self.symbol_db.fetch_schema_version()
-            if current_major_number != self.symbol_db.VERSION_MAJOR or current_minor_number != self.symbol_db.VERSION_MINOR:
-                return True
-        return False
 
 def index_file_list(root_directory, input_filename_list, compiler_args_filename, output_db_filename):
     symbol_db = SymbolDatabase(output_db_filename)
