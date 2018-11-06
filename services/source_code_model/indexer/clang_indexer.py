@@ -77,6 +77,9 @@ class ClangIndexer(object):
         if self.symbol_db_exists():
             original_filename = str(args[0])
             contents_filename = str(args[1])
+            if self.cxxd_config_parser.is_file_blacklisted(original_filename):
+                logging.info("Skipping file '{0}' ... Directory file is in is blacklisted.".format(original_filename))
+                return True, None
             if contents_filename == original_filename: # Files modified but not saved will _NOT_ get indexed
                 self.symbol_db.open(self.symbol_db_path)
                 self.symbol_db.delete_entry(remove_root_dir_from_filename(self.root_directory, original_filename))
@@ -256,9 +259,13 @@ class ClangIndexer(object):
 def index_file_list(root_directory, input_filename_list, compiler_args_filename, output_db_filename):
     symbol_db = SymbolDatabase(output_db_filename)
     symbol_db.create_data_model()
+    cxxd_config_parser = CxxdConfigParser(os.path.join(root_directory, '.cxxd_config'))
     parser = ClangParser(compiler_args_filename, TranslationUnitCache(NoCache()))
     with open(input_filename_list, 'r') as input_list:
         for filename in input_list.readlines():
+            if cxxd_config_parser.is_file_blacklisted(filename):
+                logging.info("Skipping file '{0}' ... Directory file is in is blacklisted.".format(original_filename))
+                continue
             index_single_file(parser, root_directory, filename.strip(), filename.strip(), symbol_db)
     symbol_db.close()
 
