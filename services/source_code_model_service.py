@@ -58,3 +58,23 @@ class SourceCodeModel(cxxd.service.Service):
         if self.parser and self.service:
             return self.service.get(int(args[0]), self.__unknown_service)(args[1:len(args)])
         return False, None
+
+class CxxdConfigParser():
+    def __init__(self, cxxd_config_filename):
+        self.blacklisted_directories = self._extract_blacklisted_directories(cxxd_config_filename) if os.path.exists(cxxd_config_filename) else []
+        logging.info('Blacklisted directories {0}'.format(self.blacklisted_directories))
+
+    def get_blacklisted_directories(self):
+        return self.blacklisted_directories
+
+    def is_file_blacklisted(self, filename):
+        for dir in self.blacklisted_directories:
+            if filename.startswith(dir):
+                return True
+        return False
+
+    def _extract_blacklisted_directories(self, cxxd_config_filename):
+        with open(cxxd_config_filename) as f:
+            base_dir = os.path.dirname(os.path.realpath(cxxd_config_filename))
+            dirs = [os.path.join(base_dir, line.strip()) for line in f]
+        return dirs
