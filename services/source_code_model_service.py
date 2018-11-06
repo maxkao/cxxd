@@ -39,7 +39,7 @@ class SourceCodeModel(cxxd.service.Service):
                                         cxxd.parser.tunit_cache.TranslationUnitCache(cxxd.parser.tunit_cache.FifoCache(20))
                                      )
                 self.cxxd_config_parser = CxxdConfigParser(os.path.join(project_root_directory, self.cxxd_config_file))
-                self.clang_indexer = ClangIndexer(self.parser, project_root_directory)
+                self.clang_indexer = ClangIndexer(self.parser, project_root_directory, self.cxxd_config_parser)
                 self.service = {
                     SourceCodeModelSubServiceId.INDEXER                   : self.clang_indexer,
                     SourceCodeModelSubServiceId.SEMANTIC_SYNTAX_HIGHLIGHT : SemanticSyntaxHighlight(self.parser),

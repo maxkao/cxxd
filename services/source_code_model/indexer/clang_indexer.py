@@ -34,7 +34,8 @@ class ClangIndexer(object):
         ASTNodeId.getMacroDefinitionId(), ASTNodeId.getMacroInstantiationId()                                                                # handle macros
     ]
 
-    def __init__(self, parser, root_directory):
+    def __init__(self, parser, root_directory, cxxd_config_parser):
+        self.cxxd_config_parser     = cxxd_config_parser
         self.root_directory         = root_directory
         self.symbol_db_name         = '.cxxd_index.db'
         self.symbol_db_path         = os.path.join(self.root_directory, self.symbol_db_name)
@@ -48,6 +49,7 @@ class ClangIndexer(object):
             SourceCodeModelIndexerRequestId.FIND_ALL_REFERENCES   : self.__find_all_references,
             SourceCodeModelIndexerRequestId.FETCH_ALL_DIAGNOSTICS : self.__fetch_all_diagnostics,
         }
+        self.blacklisted_directories = self.cxxd_config_parser.get_blacklisted_directories()
 
     def symbol_db_exists(self):
         return os.path.exists(self.symbol_db_path)
