@@ -23,6 +23,7 @@ class SourceCodeModel(cxxd.service.Service):
         cxxd.service.Service.__init__(self, service_plugin)
         self.parser = None
         self.service = None
+        self.cxxd_config_file = '.cxxd_config'
 
     def __unknown_service(self, args):
         logging.error("Unknown service triggered! Valid services are: {0}".format(self.service))
@@ -37,6 +38,7 @@ class SourceCodeModel(cxxd.service.Service):
                                         compiler_args_filename,
                                         cxxd.parser.tunit_cache.TranslationUnitCache(cxxd.parser.tunit_cache.FifoCache(20))
                                      )
+                self.cxxd_config_parser = CxxdConfigParser(os.path.join(project_root_directory, self.cxxd_config_file))
                 self.clang_indexer = ClangIndexer(self.parser, project_root_directory)
                 self.service = {
                     SourceCodeModelSubServiceId.INDEXER                   : self.clang_indexer,
