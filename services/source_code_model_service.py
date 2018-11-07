@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import cxxd.parser.clang_parser
@@ -77,6 +78,7 @@ class CxxdConfigParser():
 
     def _extract_blacklisted_directories(self, cxxd_config_filename):
         with open(cxxd_config_filename) as f:
+            config = json.load(f)
             base_dir = os.path.dirname(os.path.realpath(cxxd_config_filename))
-            dirs = [os.path.join(base_dir, line.strip()) for line in f]
+            dirs = [os.path.join(base_dir, dir) for dir in config['indexer']['exclude-dirs']]
         return dirs
