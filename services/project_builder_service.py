@@ -6,8 +6,10 @@ import time
 import cxxd.service
 
 class ProjectBuilder(cxxd.service.Service):
-    def __init__(self, service_plugin):
+    def __init__(self, project_root_directory, cxxd_config_parser, service_plugin):
         cxxd.service.Service.__init__(self, service_plugin)
+        self.project_root_directory = project_root_directory
+        self.cxxd_config_parser = cxxd_config_parser
         self.build_cmd_dir = None
         self.build_cmd_output_file = None
 

@@ -7,8 +7,10 @@ import time
 import cxxd.service
 
 class ClangTidy(cxxd.service.Service):
-    def __init__(self, service_plugin):
+    def __init__(self, project_root_directory, cxxd_config_parser, service_plugin):
         cxxd.service.Service.__init__(self, service_plugin)
+        self.project_root_directory = project_root_directory
+        self.cxxd_config_parser = cxxd_config_parser
         self.clang_tidy_compile_flags = None
         self.clang_tidy_binary = distutils.spawn.find_executable('clang-tidy')
         self.clang_tidy_success_code = 0

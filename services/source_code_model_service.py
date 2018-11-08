@@ -20,10 +20,12 @@ class SourceCodeModelSubServiceId():
     GO_TO_INCLUDE             = 0x5
 
 class SourceCodeModel(cxxd.service.Service):
-    def __init__(self, service_plugin):
+    def __init__(self, project_root_directory, cxxd_config_parser, service_plugin):
         cxxd.service.Service.__init__(self, service_plugin)
         self.parser = None
         self.service = None
+        self.project_root_directory = project_root_directory
+        self.cxxd_config_parser = cxxd_config_parser
 
     def __unknown_service(self, args):
         logging.error("Unknown service triggered! Valid services are: {0}".format(self.service))

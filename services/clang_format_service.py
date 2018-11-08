@@ -5,8 +5,10 @@ import subprocess
 import cxxd.service
 
 class ClangFormat(cxxd.service.Service):
-    def __init__(self, service_plugin):
+    def __init__(self, project_root_directory, cxxd_config_parser, service_plugin):
         cxxd.service.Service.__init__(self, service_plugin)
+        self.project_root_directory = project_root_directory
+        self.cxxd_config_parser = cxxd_config_parser
         self.clang_format_binary = distutils.spawn.find_executable('clang-format')
         self.clang_format_opts = '-i -style=file -assume-filename='
         self.clang_format_config_file = None
