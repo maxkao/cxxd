@@ -10,8 +10,9 @@ class CxxdConfigParser():
     def get_blacklisted_directories(self):
         return self.blacklisted_directories
 
-    def is_file_blacklisted(self, filename):
-        for dir in self.blacklisted_directories:
+    @staticmethod
+    def is_file_blacklisted(directory_list, filename):
+        for dir in directory_list:
             if filename.startswith(dir):
                 return True
         return False

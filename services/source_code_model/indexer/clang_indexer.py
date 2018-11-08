@@ -6,6 +6,7 @@ import shlex
 import subprocess
 import time
 import tempfile
+from cxxd.parser.cxxd_config_parser import CxxdConfigParser
 from cxxd.parser.clang_parser import ClangParser
 from cxxd.parser.tunit_cache import TranslationUnitCache, NoCache
 from cxxd.parser.ast_node_identifier import ASTNodeId
@@ -77,7 +78,7 @@ class ClangIndexer(object):
         if self.symbol_db_exists():
             original_filename = str(args[0])
             contents_filename = str(args[1])
-            if self.cxxd_config_parser.is_file_blacklisted(original_filename):
+            if CxxdConfigParser.is_file_blacklisted(self.blacklisted_directories, original_filename):
                 logging.info("Skipping file '{0}' ... Directory file is in is blacklisted.".format(original_filename))
                 return True, None
             if contents_filename == original_filename: # Files modified but not saved will _NOT_ get indexed
@@ -148,6 +149,7 @@ class ClangIndexer(object):
                 indexing_subprocess = start_indexing_subprocess(
                     self.root_directory,
                     self.parser.get_compiler_args_db().filename(),
+                    self.blacklisted_directories,
                     indexer_input,
                     symbol_db,
                     logging.getLoggerClass().root.handlers[0].baseFilename + '_' + str(len(indexing_subprocess_list)+1)
@@ -256,14 +258,13 @@ class ClangIndexer(object):
         return db_exists, diagnostics
 
 
-def index_file_list(root_directory, input_filename_list, compiler_args_filename, output_db_filename):
+def index_file_list(root_directory, input_filename_list, compiler_args_filename, blacklisted_dirs, output_db_filename):
     symbol_db = SymbolDatabase(output_db_filename)
     symbol_db.create_data_model()
-    cxxd_config_parser = CxxdConfigParser(os.path.join(root_directory, '.cxxd_config'))
     parser = ClangParser(compiler_args_filename, TranslationUnitCache(NoCache()))
     with open(input_filename_list, 'r') as input_list:
         for filename in input_list.readlines():
-            if cxxd_config_parser.is_file_blacklisted(filename):
+            if CxxdConfigParser.is_file_blacklisted(blacklisted_dirs, filename):
                 logging.info("Skipping file '{0}' ... Directory file is in is blacklisted.".format(original_filename))
                 continue
             index_single_file(parser, root_directory, filename.strip(), filename.strip(), symbol_db)
@@ -361,11 +362,13 @@ def create_empty_symbol_db(directory, with_prefix):
     symbol_db_handle, symbol_db = tempfile.mkstemp(prefix=with_prefix, dir=directory)
     return symbol_db_handle, symbol_db
 
-def start_indexing_subprocess(root_directory, compiler_args_filename, indexer_input_list_filename, output_db_filename, log_filename):
+def start_indexing_subprocess(root_directory, compiler_args_filename, blacklisted_dirs, indexer_input_list_filename, output_db_filename, log_filename):
+    logging.error(' '.join(dir for dir in blacklisted_dirs))
     cmd = "python2 " + get_clang_index_path() + \
             " --project_root_directory='" + root_directory + \
             "' --compiler_args_filename='" + compiler_args_filename + \
-            "' --input_list='" + indexer_input_list_filename + \
+            "' --blacklisted_dirs " + ' '.join(dir for dir in blacklisted_dirs) + \
+            "  --input_list='" + indexer_input_list_filename + \
             "' --output_db_filename='" + output_db_filename + \
             "' " + "--log_file='" + log_filename + "'"
     return subprocess.Popen(shlex.split(cmd))
