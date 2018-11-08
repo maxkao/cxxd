@@ -6,12 +6,12 @@ from services.source_code_model.indexer.clang_indexer import SourceCodeModelInde
 #
 # Server API
 #
-def server_start(get_server_instance, get_server_instance_args, log_file):
+def server_start(get_server_instance, get_server_instance_args, project_root_directory, log_file):
     import logging
     import multiprocessing
     import sys
 
-    def __run_impl(handle, get_server_instance, args, log_file):
+    def __run_impl(handle, get_server_instance, args, project_root_directory, log_file):
         def __handle_exception(exc_type, exc_value, exc_traceback):
             logging.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
@@ -34,7 +34,7 @@ def server_start(get_server_instance, get_server_instance_args, log_file):
         # Logger setup
         FORMAT = '[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(filename)s:%(lineno)s] %(funcName)25s(): %(message)s'
         logging.basicConfig(filename=log_file, filemode='w', format=FORMAT, datefmt='%H:%M:%S', level=logging.INFO)
-        logging.info('Starting a server ...')
+        logging.info('Starting a server for {0}'.format(project_root_directory))
 
         # Setup catching unhandled exceptions
         __catch_unhandled_exceptions()
@@ -42,7 +42,7 @@ def server_start(get_server_instance, get_server_instance_args, log_file):
         # Instantiate and run the server
         try:
             from server import server_listener
-            server_listener(get_server_instance(handle, args))
+            server_listener(get_server_instance(handle, project_root_directory, args))
         except:
             sys.excepthook(*sys.exc_info())
 
@@ -53,6 +53,7 @@ def server_start(get_server_instance, get_server_instance_args, log_file):
             server_queue,
             get_server_instance,
             get_server_instance_args,
+            project_root_directory,
             log_file
         ),
         name="cxxd_server"
