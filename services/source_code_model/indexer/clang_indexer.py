@@ -111,7 +111,7 @@ class ClangIndexer(object):
             self.symbol_db.create_data_model()
 
             # Build-up a list of source code files from given project directory
-            cpp_file_list = get_cpp_file_list(self.root_directory)
+            cpp_file_list = get_cpp_file_list(self.root_directory, self.blacklisted_directories)
 
             indexing_subprocess_list = []
             symbol_db_list = []
@@ -147,7 +147,6 @@ class ClangIndexer(object):
                 indexing_subprocess = start_indexing_subprocess(
                     self.root_directory,
                     self.parser.get_compiler_args_db().filename(),
-                    self.blacklisted_directories,
                     indexer_input,
                     symbol_db,
                     logging.getLoggerClass().root.handlers[0].baseFilename + '_' + str(len(indexing_subprocess_list)+1)
@@ -257,14 +256,13 @@ class ClangIndexer(object):
         return db_exists, diagnostics
 
 
-def index_file_list(root_directory, input_filename_list, compiler_args_filename, blacklisted_dirs, output_db_filename):
+def index_file_list(root_directory, input_filename_list, compiler_args_filename, output_db_filename):
     symbol_db = SymbolDatabase(output_db_filename)
     symbol_db.create_data_model()
     parser = ClangParser(compiler_args_filename, TranslationUnitCache(NoCache()))
     with open(input_filename_list, 'r') as input_list:
         for filename in input_list.readlines():
-            if not CxxdConfigParser.is_file_blacklisted(blacklisted_dirs, filename):
-                index_single_file(parser, root_directory, filename.strip(), filename.strip(), symbol_db)
+            index_single_file(parser, root_directory, filename.strip(), filename.strip(), symbol_db)
     symbol_db.close()
 
 def indexer_visitor(ast_node, ast_parent_node, args):
@@ -340,13 +338,14 @@ def get_clang_index_path():
     this_script_directory = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(this_script_directory, 'clang_index.py')
 
-def get_cpp_file_list(root_directory):
+def get_cpp_file_list(root_directory, blacklisted_directories):
     cpp_file_list = []
     for dirpath, dirs, files in os.walk(root_directory):
-        for file in files:
-            name, extension = os.path.splitext(file)
+        for filename in files:
+            name, extension = os.path.splitext(filename)
             if extension in ['.cpp', '.cc', '.cxx', '.c', '.h', '.hh', '.hpp']:
-                cpp_file_list.append(os.path.join(dirpath, file))
+                if not CxxdConfigParser.is_file_blacklisted(blacklisted_directories, filename):
+                    cpp_file_list.append(os.path.join(dirpath, filename))
     return cpp_file_list
 
 def create_indexer_input_list_file(directory, with_prefix, cpp_file_list_chunk):
@@ -359,12 +358,11 @@ def create_empty_symbol_db(directory, with_prefix):
     symbol_db_handle, symbol_db = tempfile.mkstemp(prefix=with_prefix, dir=directory)
     return symbol_db_handle, symbol_db
 
-def start_indexing_subprocess(root_directory, compiler_args_filename, blacklisted_dirs, indexer_input_list_filename, output_db_filename, log_filename):
+def start_indexing_subprocess(root_directory, compiler_args_filename, indexer_input_list_filename, output_db_filename, log_filename):
     cmd = "python2 " + get_clang_index_path() + \
             " --project_root_directory='" + root_directory + \
             "' --compiler_args_filename='" + compiler_args_filename + \
-            "' --blacklisted_dirs " + ' '.join(dir for dir in blacklisted_dirs) + \
-            "  --input_list='" + indexer_input_list_filename + \
+            "' --input_list='" + indexer_input_list_filename + \
             "' --output_db_filename='" + output_db_filename + \
             "' " + "--log_file='" + log_filename + "'"
     return subprocess.Popen(shlex.split(cmd))
