@@ -180,8 +180,9 @@ class ClangIndexer(object):
         symbol_db_exists = self.symbol_db_exists()
         if symbol_db_exists:
             filename = str(args[0])
-            self.symbol_db.open(self.symbol_db_path)
-            self.symbol_db.delete_entry(remove_root_dir_from_filename(self.root_directory, filename))
+            if not CxxdConfigParser.is_file_blacklisted(self.blacklisted_directories, filename):
+                self.symbol_db.open(self.symbol_db_path)
+                self.symbol_db.delete_entry(remove_root_dir_from_filename(self.root_directory, filename))
         else:
             logging.error('Action cannot be run if symbol database does not exist yet!')
         return symbol_db_exists, None
