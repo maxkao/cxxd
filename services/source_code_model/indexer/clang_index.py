@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Index given list of files.')
     parser.add_argument('--project_root_directory', required=True, help='a root directory of project to be indexed')
     parser.add_argument('--compiler_args_filename', required=True, help='a file containing a list of compiler args to be used while indexing')
-    parser.add_argument('--blacklisted_dirs',       required=True, nargs='+', help='List of blacklisted directories to be skipped while indexing')
+    parser.add_argument('--blacklisted_dirs',       required=True, nargs='*', help='List of blacklisted directories to be skipped while indexing')
     parser.add_argument('--input_list',             required=True, help='input file containing all source filenames to be indexed (one filename per each line)')
     parser.add_argument('--output_db_filename',     required=True, help='indexing result will be recorded in this file (SQLite db)')
     parser.add_argument('--log_file',               required=True, help='log file to log indexing actions')

@@ -363,7 +363,6 @@ def create_empty_symbol_db(directory, with_prefix):
     return symbol_db_handle, symbol_db
 
 def start_indexing_subprocess(root_directory, compiler_args_filename, blacklisted_dirs, indexer_input_list_filename, output_db_filename, log_filename):
-    logging.error(' '.join(dir for dir in blacklisted_dirs))
     cmd = "python2 " + get_clang_index_path() + \
             " --project_root_directory='" + root_directory + \
             "' --compiler_args_filename='" + compiler_args_filename + \
