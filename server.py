@@ -66,7 +66,8 @@ class Server():
 
     def __init__(self, handle, project_root_directory, source_code_model_plugin, project_builder_plugin, clang_format_plugin, clang_tidy_plugin):
         self.handle = handle
-        self.cxxd_config_parser = CxxdConfigParser(os.path.join(project_root_directory, '.cxxd_config'))
+        self.cxxd_config_filename = '.cxxd_config.json'
+        self.cxxd_config_parser = CxxdConfigParser(os.path.join(project_root_directory, self.cxxd_config_filename))
         self.service = {
             ServiceId.SOURCE_CODE_MODEL : self.ServiceHandler(SourceCodeModel(project_root_directory, self.cxxd_config_parser, source_code_model_plugin)),
             ServiceId.PROJECT_BUILDER   : self.ServiceHandler(ProjectBuilder(project_root_directory, self.cxxd_config_parser, project_builder_plugin)),
