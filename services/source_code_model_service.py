@@ -33,26 +33,26 @@ class SourceCodeModel(cxxd.service.Service):
 
     def startup_callback(self, args):
         # Instantiate source-code-model services with Clang parser configured
-        project_root_directory, compiler_args_filename = args
-        if os.path.isdir(project_root_directory):
+        compiler_args_filename = args[0]
+        if os.path.isdir(self.project_root_directory):
             if os.path.isfile(compiler_args_filename):
                 self.parser        = cxxd.parser.clang_parser.ClangParser(
                                         compiler_args_filename,
                                         cxxd.parser.tunit_cache.TranslationUnitCache(cxxd.parser.tunit_cache.FifoCache(20))
                                      )
-                self.clang_indexer = ClangIndexer(self.parser, project_root_directory, self.cxxd_config_parser)
+                self.clang_indexer = ClangIndexer(self.parser, self.project_root_directory, self.cxxd_config_parser)
                 self.service = {
                     SourceCodeModelSubServiceId.INDEXER                   : self.clang_indexer,
                     SourceCodeModelSubServiceId.SEMANTIC_SYNTAX_HIGHLIGHT : SemanticSyntaxHighlight(self.parser),
                     SourceCodeModelSubServiceId.DIAGNOSTICS               : Diagnostics(self.parser),
                     SourceCodeModelSubServiceId.TYPE_DEDUCTION            : TypeDeduction(self.parser),
-                    SourceCodeModelSubServiceId.GO_TO_DEFINITION          : GoToDefinition(self.parser, self.clang_indexer.get_symbol_db(), project_root_directory),
+                    SourceCodeModelSubServiceId.GO_TO_DEFINITION          : GoToDefinition(self.parser, self.clang_indexer.get_symbol_db(), self.project_root_directory),
                     SourceCodeModelSubServiceId.GO_TO_INCLUDE             : GoToInclude(self.parser)
                 }
             else:
                 logging.error('File, \'{0}\', ought to provide compiler flags is not valid!'.format(compiler_args_filename))
         else:
-            logging.error('Project root directory, \'{0}\', is not valid!'.format(project_root_directory))
+            logging.error('Project root directory, \'{0}\', is not valid!'.format(self.project_root_directory))
 
     def shutdown_callback(self, args):
         pass

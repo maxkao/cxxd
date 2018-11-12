@@ -79,8 +79,8 @@ def server_stop_all_services(handle, *payload):
 #
 # Source code model API
 #
-def source_code_model_start(handle, project_root_directory, compiler_args):
-    _server_start_service(handle, ServiceId.SOURCE_CODE_MODEL, project_root_directory, compiler_args)
+def source_code_model_start(handle, compiler_args):
+    _server_start_service(handle, ServiceId.SOURCE_CODE_MODEL, compiler_args)
 
 def source_code_model_stop(handle, subscribe_for_callback):
     _server_stop_service(handle, ServiceId.SOURCE_CODE_MODEL, subscribe_for_callback)
