@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from file_generator import FileGenerator
@@ -7,6 +8,7 @@ class ClangFormatTest(unittest.TestCase):
     def setUpClass(cls):
         cls.file_to_perform_clang_format_on = FileGenerator.gen_simple_cpp_file()
         cls.clang_format_config_file        = FileGenerator.gen_clang_format_config_file()
+        cls.project_root_directory          = os.path.dirname(cls.file_to_perform_clang_format_on.name)
 
     @classmethod
     def tearDownClass(cls):
@@ -16,7 +18,7 @@ class ClangFormatTest(unittest.TestCase):
     def setUp(self):
         import cxxd_mocks
         from services.clang_format_service import ClangFormat
-        self.service = ClangFormat(cxxd_mocks.ServicePluginMock())
+        self.service = ClangFormat(self.project_root_directory, None, cxxd_mocks.ServicePluginMock())
 
     def test_if_config_file_is_set_to_none_by_default(self):
         self.assertEqual(self.service.clang_format_config_file, None)

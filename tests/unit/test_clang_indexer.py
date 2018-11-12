@@ -52,11 +52,11 @@ class ClangIndexerTest(unittest.TestCase):
             parser.ast_node_identifier.ASTNodeId.getUnsupportedId(),
         ]
         self.root_directory = os.path.dirname(self.test_file.name)
-        self.service = ClangIndexer(self.parser, self.root_directory)
+        self.service = ClangIndexer(self.parser, self.root_directory, cxxd_mocks.CxxdConfigParserMock())
 
     def test_if_symbol_db_conn_is_automatically_established_in_case_db_already_exists_on_the_disk(self):
         symbol_db = SymbolDatabase(os.path.join(self.root_directory, self.service.symbol_db_name))
-        service = ClangIndexer(self.parser, self.root_directory)
+        service = ClangIndexer(self.parser, self.root_directory, cxxd_mocks.CxxdConfigParserMock())
         self.assertTrue(service.symbol_db_exists())
         self.assertTrue(service.get_symbol_db().is_open())
         symbol_db.close()
@@ -64,7 +64,7 @@ class ClangIndexerTest(unittest.TestCase):
         self.assertFalse(service.symbol_db_exists())
 
     def test_if_symbol_db_conn_is_not_established_in_case_db_does_not_exist_on_the_disk(self):
-        service = ClangIndexer(self.parser, self.root_directory)
+        service = ClangIndexer(self.parser, self.root_directory, cxxd_mocks.CxxdConfigParserMock())
         self.assertFalse(service.symbol_db_exists())
         self.assertFalse(service.get_symbol_db().is_open())
 
@@ -176,7 +176,7 @@ class ClangIndexerTest(unittest.TestCase):
                         success, args = self.service([SourceCodeModelIndexerRequestId.RUN_ON_DIRECTORY])
         mock_symbol_db_open.assert_called_once_with(self.service.symbol_db_path)
         mock_symbol_db_create_data_model.assert_called_once()
-        mock_get_cpp_file_list.assert_called_once_with(self.service.root_directory)
+        mock_get_cpp_file_list.assert_called_once_with(self.service.root_directory, [])
         self.assertEqual(success, True)
         self.assertEqual(args, None)
 
@@ -200,7 +200,7 @@ class ClangIndexerTest(unittest.TestCase):
                             success, args = self.service([SourceCodeModelIndexerRequestId.RUN_ON_DIRECTORY])
         mock_symbol_db_open.assert_called_once_with(self.service.symbol_db_path)
         mock_symbol_db_create_data_model.assert_called_once()
-        mock_get_cpp_file_list.assert_called_once_with(self.service.root_directory)
+        mock_get_cpp_file_list.assert_called_once_with(self.service.root_directory, [])
         mock_slice_it.assert_called_once_with(cpp_file_list, len(cpp_file_list)/multiprocessing.cpu_count())
         mock_create_indexer_input_list_file.assert_called_with(self.service.root_directory, mock.ANY, mock_slice_it.return_value[len(cpp_file_list_chunks)-1])
         mock_create_empty_symbol_db.assert_called_with(self.service.root_directory, self.service.symbol_db_name)
@@ -625,7 +625,7 @@ class ClangIndexerTest(unittest.TestCase):
         os_walk_dir_list = (self.root_directory)
         os_walk_file_list = ('/tmp/a.cpp', '/tmp/b.cc', '/tmp/c.cxx', '/tmp/d.c', '/tmp/e.h', '/tmp/f.hh', '/tmp/g.hpp')
         with mock.patch('os.walk', return_value=[(self.root_directory, os_walk_dir_list, os_walk_file_list),]) as mock_os_walk:
-            cpp_list = get_cpp_file_list(self.root_directory)
+            cpp_list = get_cpp_file_list(self.root_directory, [])
         mock_os_walk.assert_called_once_with(self.root_directory)
         self.assertEqual(len(os_walk_file_list), len(cpp_list))
 
@@ -633,7 +633,7 @@ class ClangIndexerTest(unittest.TestCase):
         os_walk_dir_list = (self.root_directory)
         os_walk_file_list = ('/tmp/a.md', '/tmp/b.txt', '/tmp/c.json')
         with mock.patch('os.walk', return_value=[(self.root_directory, os_walk_dir_list, os_walk_file_list),]) as mock_os_walk:
-            cpp_list = get_cpp_file_list(self.root_directory)
+            cpp_list = get_cpp_file_list(self.root_directory, [])
         mock_os_walk.assert_called_once_with(self.root_directory)
         self.assertEqual(0, len(cpp_list))
 
@@ -641,7 +641,7 @@ class ClangIndexerTest(unittest.TestCase):
         os_walk_dir_list = (self.root_directory)
         os_walk_file_list = ()
         with mock.patch('os.walk', return_value=[(self.root_directory, os_walk_dir_list, os_walk_file_list),]) as mock_os_walk:
-            cpp_list = get_cpp_file_list(self.root_directory)
+            cpp_list = get_cpp_file_list(self.root_directory, [])
         mock_os_walk.assert_called_once_with(self.root_directory)
         self.assertEqual(0, len(cpp_list))
 

@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from file_generator import FileGenerator
@@ -6,6 +7,7 @@ class ClangTidyTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.file_to_perform_clang_tidy_on = FileGenerator.gen_simple_cpp_file()
+        cls.project_root_directory        = os.path.dirname(cls.file_to_perform_clang_tidy_on.name)
         cls.txt_compilation_database      = FileGenerator.gen_txt_compilation_database()
         cls.json_compilation_database     = FileGenerator.gen_json_compilation_database(cls.file_to_perform_clang_tidy_on.name)
 
@@ -18,7 +20,7 @@ class ClangTidyTest(unittest.TestCase):
     def setUp(self):
         import cxxd_mocks
         from services.clang_tidy_service import ClangTidy
-        self.service = ClangTidy(cxxd_mocks.ServicePluginMock())
+        self.service = ClangTidy(self.project_root_directory, None, cxxd_mocks.ServicePluginMock())
         self.unsupported_compilation_database = 'compiler_flags.yaml'
 
     def test_if_compile_flags_are_set_to_none_by_default(self):
