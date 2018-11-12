@@ -21,12 +21,10 @@ class ProjectBuilder(cxxd.service.Service):
 
     def __call__(self, args):
         build_cmd = args[0]
-        if self.build_cmd_dir and self.build_cmd_output_file:
-            start = time.clock()
-            self.build_cmd_output_file.truncate()
-            cmd = "cd " + self.build_cmd_dir + " && " + build_cmd
-            build_exit_code = subprocess.call(cmd, shell=True, stdout=self.build_cmd_output_file, stderr=self.build_cmd_output_file)
-            end = time.clock()
-            logging.info("Cmd '{0}' took {1}. Status = {2}".format(cmd, end-start, build_exit_code))
-            return True, [self.build_cmd_output_file.name, build_exit_code, end-start]
-        return False, None
+        start = time.clock()
+        self.build_cmd_output_file.truncate()
+        cmd = "cd " + self.project_root_directory + " && " + build_cmd
+        build_exit_code = subprocess.call(cmd, shell=True, stdout=self.build_cmd_output_file, stderr=self.build_cmd_output_file)
+        end = time.clock()
+        logging.info("Cmd '{0}' took {1}. Status = {2}".format(cmd, end-start, build_exit_code))
+        return True, [self.build_cmd_output_file.name, build_exit_code, end-start]
