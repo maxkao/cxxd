@@ -10,17 +10,11 @@ class ProjectBuilder(cxxd.service.Service):
         cxxd.service.Service.__init__(self, service_plugin)
         self.project_root_directory = project_root_directory
         self.cxxd_config_parser = cxxd_config_parser
-        self.build_cmd_dir = None
-        self.build_cmd_output_file = None
+        self.build_cmd_output_file = tempfile.NamedTemporaryFile(suffix='_project_build_output')
+        logging.info("Build command will be executed from \'{0}\' directory. Output will be recorded into \'{1}\'.".format(self.project_root_directory, self.build_cmd_output_file.name))
 
     def startup_callback(self, args):
-        build_cmd_dir = args[0]
-        if os.path.isdir(build_cmd_dir):
-            self.build_cmd_dir = build_cmd_dir
-            self.build_cmd_output_file = tempfile.NamedTemporaryFile(suffix='_project_build_output')
-            logging.info("Build command will be executed from \'{0}\' directory. Output will be recorded into \'{1}\'.".format(build_cmd_dir, self.build_cmd_output_file.name))
-        else:
-            logging.error('Provided directory, \'{0}\', is not valid!'.format(build_cmd_dir))
+        pass
 
     def shutdown_callback(self, args):
         pass

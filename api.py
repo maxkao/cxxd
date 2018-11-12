@@ -125,8 +125,8 @@ def source_code_model_indexer_fetch_all_diagnostics_request(handle, sorting_stra
 #
 # Project builder service API
 #
-def project_builder_start(handle, project_root_directory):
-    _server_start_service(handle, ServiceId.PROJECT_BUILDER, project_root_directory)
+def project_builder_start(handle):
+    _server_start_service(handle, ServiceId.PROJECT_BUILDER)
 
 def project_builder_stop(handle, subscribe_for_callback):
     _server_stop_service(handle, ServiceId.PROJECT_BUILDER, subscribe_for_callback)
