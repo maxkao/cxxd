@@ -10,8 +10,21 @@ class ProjectBuilder(cxxd.service.Service):
         cxxd.service.Service.__init__(self, service_plugin)
         self.project_root_directory = project_root_directory
         self.cxxd_config_parser = cxxd_config_parser
+        self.build_args = self._stringify_project_builder_args(
+            self.cxxd_config_parser.get_project_builder_args()
+        )
         self.build_cmd_output_file = tempfile.NamedTemporaryFile(suffix='_project_build_output')
         logging.info("Build command will be executed from \'{0}\' directory. Output will be recorded into \'{1}\'.".format(self.project_root_directory, self.build_cmd_output_file.name))
+
+    def _stringify_project_builder_args(self, args):
+        project_builder_args = ''
+        for arg, value in args:
+            if isinstance(value, bool):
+                if value:
+                    project_builder_args += arg + ' '
+            else:
+                project_builder_args += arg + '=' + value
+        return project_builder_args
 
     def startup_callback(self, args):
         pass
@@ -20,7 +33,7 @@ class ProjectBuilder(cxxd.service.Service):
         pass
 
     def __call__(self, args):
-        build_cmd = args[0]
+        build_cmd = args[0] + ' ' + self.build_args
         start = time.clock()
         self.build_cmd_output_file.truncate()
         cmd = "cd " + self.project_root_directory + " && " + build_cmd
