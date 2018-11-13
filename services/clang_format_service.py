@@ -10,14 +10,20 @@ class ClangFormat(cxxd.service.Service):
         self.project_root_directory = project_root_directory
         self.cxxd_config_parser = cxxd_config_parser
         self.clang_format_binary = distutils.spawn.find_executable('clang-format')
-        self.clang_format_args = ''
-        for arg, value in self.cxxd_config_parser.get_clang_format_args():
+        self.clang_format_args = self._stringify_clang_format_args(
+            self.cxxd_config_parser.get_clang_format_args()
+        )
+        self.clang_format_success_code = 0
+
+    def _stringify_clang_format_args(self, args):
+        clang_format_args = ''
+        for arg, value in args:
             if isinstance(value, bool):
                 if value:
-                    self.clang_format_args += arg + ' '
+                    clang_format_args += arg + ' '
             else:
-                self.clang_format_args += arg + '=' + value
-        self.clang_format_success_code = 0
+                clang_format_args += arg + '=' + value
+        return clang_format_args
 
     def startup_callback(self, args):
         if self.clang_format_binary:

@@ -12,16 +12,22 @@ class ClangTidy(cxxd.service.Service):
         self.project_root_directory = project_root_directory
         self.cxxd_config_parser = cxxd_config_parser
         self.clang_tidy_compile_flags = None
-        self.clang_tidy_args = ''
-        for arg, value in self.cxxd_config_parser.get_clang_tidy_args():
-            if isinstance(value, bool):
-                if value:
-                    self.clang_tidy_args += arg + ' '
-            else:
-                self.clang_tidy_args += arg + '=' + value
+        self.clang_tidy_args = self._stringify_clang_tidy_args(
+           self.cxxd_config_parser.get_clang_tidy_args()
+        )
         self.clang_tidy_binary = distutils.spawn.find_executable('clang-tidy')
         self.clang_tidy_success_code = 0
         self.clang_tidy_output = None
+
+    def _stringify_clang_tidy_args(self, args):
+        clang_tidy_args = ''
+        for arg, value in args:
+            if isinstance(value, bool):
+                if value:
+                    clang_tidy_args += arg + ' '
+            else:
+                clang_tidy_args += arg + '=' + value
+        return clang_tidy_args
 
     def startup_callback(self, args):
         if self.clang_tidy_binary:
