@@ -174,6 +174,11 @@ TabWidth: 4                             \n\
             "-style" : "llvm",                  \n\
             "-verbose" : true                   \n\
         }                                       \n\
+    },                                          \n\
+    "project-builder" : {                       \n\
+        "args": {                               \n\
+            "--verbose" : true                  \n\
+        }                                       \n\
     }                                           \n\
 }                                               \n\
         ')
@@ -193,6 +198,10 @@ TabWidth: 4                             \n\
         }                                       \n\
     },                                          \n\
     "clang-format" : {                          \n\
+        "args": {                               \n\
+        }                                       \n\
+    },                                          \n\
+    "project-builder" : {                       \n\
         "args": {                               \n\
         }                                       \n\
     }                                           \n\
