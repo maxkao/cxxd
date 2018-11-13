@@ -167,6 +167,13 @@ TabWidth: 4                             \n\
             "-explain-config" : false,          \n\
             "-format-style" : "llvm"            \n\
         }                                       \n\
+    },                                          \n\
+    "clang-format" : {                          \n\
+        "args": {                               \n\
+            "-sort-includes" : true,            \n\
+            "-style" : "llvm",                  \n\
+            "-verbose" : true                   \n\
+        }                                       \n\
     }                                           \n\
 }                                               \n\
         ')
