@@ -150,5 +150,28 @@ TabWidth: 4                             \n\
         return fd
 
     @staticmethod
+    def gen_cxxd_config_filename():
+        fd = open(tempfile.gettempdir() + os.path.sep + '.cxxd_config.json', 'w', 0)
+        fd.write('\
+{                                               \n\
+    "indexer" : {                               \n\
+        "exclude-dirs": [                       \n\
+            "test",                             \n\
+            "CMake",                            \n\
+            "CMakeFiles"                        \n\
+         ]                                      \n\
+    },                                          \n\
+    "clang-tidy" : {                            \n\
+        "args": {                               \n\
+            "-analyze-temporary-dtors" : true,  \n\
+            "-explain-config" : false,          \n\
+            "-format-style" : "llvm"            \n\
+        }                                       \n\
+    }                                           \n\
+}                                               \n\
+        ')
+        return fd
+
+    @staticmethod
     def close_gen_file(fd):
         os.remove(fd.name)
