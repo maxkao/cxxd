@@ -4,11 +4,23 @@ import os
 
 class CxxdConfigParser():
     def __init__(self, cxxd_config_filename):
-        self.blacklisted_directories = self._extract_blacklisted_directories(cxxd_config_filename) if os.path.exists(cxxd_config_filename) else []
+        self.blacklisted_directories = []
+        self.clang_tidy_args         = ''
+        if os.path.exists(cxxd_config_filename):
+            with open(cxxd_config_filename) as f:
+                config = json.load(f)
+                self.blacklisted_directories = self._extract_blacklisted_directories(
+                    config, os.path.dirname(os.path.realpath(cxxd_config_filename))
+                )
+                self.clang_tidy_args = self._extract_clang_tidy_args(config)
         logging.info('Blacklisted directories {0}'.format(self.blacklisted_directories))
+        logging.info('Clang-tidy args {0}'.format(self.clang_tidy_args))
 
     def get_blacklisted_directories(self):
         return self.blacklisted_directories
+
+    def get_clang_tidy_args(self):
+        return self.clang_tidy_args
 
     @staticmethod
     def is_file_blacklisted(directory_list, filename):
@@ -17,9 +29,12 @@ class CxxdConfigParser():
                 return True
         return False
 
-    def _extract_blacklisted_directories(self, cxxd_config_filename):
-        with open(cxxd_config_filename) as f:
-            config = json.load(f)
-            base_dir = os.path.dirname(os.path.realpath(cxxd_config_filename))
-            dirs = [os.path.join(base_dir, dir) for dir in config['indexer']['exclude-dirs']]
+    def _extract_blacklisted_directories(self, config, base_dir):
+        dirs = [os.path.join(base_dir, dir) for dir in config['indexer']['exclude-dirs']]
         return dirs
+
+    def _extract_clang_tidy_args(self, config):
+        args = []
+        for arg, value in config['clang-tidy']['args'].iteritems():
+            args.append((arg, value),)
+        return args
