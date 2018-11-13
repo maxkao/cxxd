@@ -5,8 +5,8 @@ import os
 class CxxdConfigParser():
     def __init__(self, cxxd_config_filename):
         self.blacklisted_directories = []
-        self.clang_tidy_args         = ''
-        self.clang_format_args       = ''
+        self.clang_tidy_args         = []
+        self.clang_format_args       = []
         if os.path.exists(cxxd_config_filename):
             with open(cxxd_config_filename) as f:
                 config = json.load(f)
