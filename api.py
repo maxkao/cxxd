@@ -137,8 +137,8 @@ def project_builder_request(handle, build_command):
 #
 # Clang-format service API
 #
-def clang_format_start(handle, config_file):
-    _server_start_service(handle, ServiceId.CLANG_FORMAT, config_file)
+def clang_format_start(handle):
+    _server_start_service(handle, ServiceId.CLANG_FORMAT)
 
 def clang_format_stop(handle, subscribe_for_callback):
     _server_stop_service(handle, ServiceId.CLANG_FORMAT, subscribe_for_callback)
