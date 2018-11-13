@@ -6,6 +6,7 @@ class CxxdConfigParser():
     def __init__(self, cxxd_config_filename):
         self.blacklisted_directories = []
         self.clang_tidy_args         = ''
+        self.clang_format_args       = ''
         if os.path.exists(cxxd_config_filename):
             with open(cxxd_config_filename) as f:
                 config = json.load(f)
@@ -13,14 +14,19 @@ class CxxdConfigParser():
                     config, os.path.dirname(os.path.realpath(cxxd_config_filename))
                 )
                 self.clang_tidy_args = self._extract_clang_tidy_args(config)
+                self.clang_format_args = self._extract_clang_format_args(config)
         logging.info('Blacklisted directories {0}'.format(self.blacklisted_directories))
         logging.info('Clang-tidy args {0}'.format(self.clang_tidy_args))
+        logging.info('Clang-format args {0}'.format(self.clang_format_args))
 
     def get_blacklisted_directories(self):
         return self.blacklisted_directories
 
     def get_clang_tidy_args(self):
         return self.clang_tidy_args
+
+    def get_clang_format_args(self):
+        return self.clang_format_args
 
     @staticmethod
     def is_file_blacklisted(directory_list, filename):
@@ -36,5 +42,11 @@ class CxxdConfigParser():
     def _extract_clang_tidy_args(self, config):
         args = []
         for arg, value in config['clang-tidy']['args'].iteritems():
+            args.append((arg, value),)
+        return args
+
+    def _extract_clang_format_args(self, config):
+        args = []
+        for arg, value in config['clang-format']['args'].iteritems():
             args.append((arg, value),)
         return args
