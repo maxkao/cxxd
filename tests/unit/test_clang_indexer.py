@@ -691,6 +691,16 @@ class ClangIndexerTest(unittest.TestCase):
         mock_os_walk.assert_called_once_with(self.root_directory)
         self.assertEqual(len(os_walk_file_list)-1, len(cpp_list))
 
+    def test_if_get_cpp_file_list_returns_files_with_non_standard_extension(self):
+        blacklisted_directories = []
+        extra_file_extensions = ['.ic', '.i', '.tcc', '.txx']
+        os_walk_dir_list = (self.root_directory)
+        os_walk_file_list = ('/tmp/a.cpp', '/tmp/b.ic', '/tmp/c.i', '/tmp/d.tcc', '/tmp/e.txx')
+        with mock.patch('os.walk', return_value=[(self.root_directory, os_walk_dir_list, os_walk_file_list),]) as mock_os_walk:
+            cpp_list = get_cpp_file_list(self.root_directory, blacklisted_directories, self.service.recognized_file_extensions + extra_file_extensions)
+        mock_os_walk.assert_called_once_with(self.root_directory)
+        self.assertEqual(len(os_walk_file_list), len(cpp_list))
+
     def test_if_create_indexer_input_list_file_creates_a_file_containing_newline_separated_list_of_files_with_given_prefix_in_given_directory(self):
         input_list_prefix = 'input_list_0'
         cpp_file_list = ['/tmp/a.cpp', '/tmp/b.cpp', '/tmp/c.cpp', '/tmp/d.cpp', '/tmp/e.cpp', '/tmp/f.cpp', '/tmp/g.cpp']
