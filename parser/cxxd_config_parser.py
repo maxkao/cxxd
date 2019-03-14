@@ -5,6 +5,7 @@ import os
 
 class CxxdConfigParser():
     def __init__(self, cxxd_config_filename, project_root_directory):
+        self.configuration_type = None
         self.indexer_blacklisted_directories = []
         self.indexer_extra_file_extensions   = []
         self.clang_tidy_args         = []
@@ -16,6 +17,7 @@ class CxxdConfigParser():
         if os.path.exists(cxxd_config_filename):
             with open(cxxd_config_filename) as f:
                 config = json.load(f)
+                self.configuration_type = self._extract_configuration_type(config)
                 self.indexer_blacklisted_directories = self._extract_indexer_blacklisted_directories(
                     config, os.path.dirname(os.path.realpath(cxxd_config_filename))
                 )
@@ -29,6 +31,7 @@ class CxxdConfigParser():
             self.clang_tidy_binary_path = self._find_system_wide_binary('clang-tidy')
         if not self.clang_format_binary_path:
             self.clang_format_binary_path = self._find_system_wide_binary('clang-format')
+        logging.info('Configuration: Type {0}'.format(self.configuration_type))
         logging.info('Indexer: Blacklisted directories {0}'.format(self.indexer_blacklisted_directories))
         logging.info('Indexer: Extra file extensions {0}'.format(self.indexer_extra_file_extensions))
         logging.info('Clang-tidy args {0}'.format(self.clang_tidy_args))
@@ -36,6 +39,9 @@ class CxxdConfigParser():
         logging.info('Clang-format args {0}'.format(self.clang_format_args))
         logging.info('Clang-format binary path {0}'.format(self.clang_format_binary_path))
         logging.info('Project-builder args {0}'.format(self.project_builder_args))
+
+    def get_configuration_type(self):
+        return self.configuration_type;
 
     def get_blacklisted_directories(self):
         return self.indexer_blacklisted_directories
@@ -67,6 +73,17 @@ class CxxdConfigParser():
 
     def _find_system_wide_binary(self, binary_name):
         return distutils.spawn.find_executable(binary_name)
+
+    def _extract_configuration_type(self, config):
+        config_type = None
+        if 'configuration' in config:
+            if 'type' in config['configuration']:
+                cfg_type = config['configuration']['type']
+                if cfg_type in ['compilation-database', 'compile-flags', 'auto-discovery']:
+                    config_type = cfg_type
+                else:
+                    logging.fatal('Invalid configuration-type. Must be one of {compilation-database | compile-flags | auto-discovery}')
+        return config_type
 
     def _extract_indexer_blacklisted_directories(self, config, base_dir):
         dirs = []
