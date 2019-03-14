@@ -6,12 +6,12 @@ from services.source_code_model.indexer.clang_indexer import SourceCodeModelInde
 #
 # Server API
 #
-def server_start(get_server_instance, get_server_instance_args, project_root_directory, log_file):
+def server_start(get_server_instance, get_server_instance_args, project_root_directory, target_configuration, log_file):
     import logging
     import multiprocessing
     import sys
 
-    def __run_impl(handle, get_server_instance, args, project_root_directory, log_file):
+    def __run_impl(handle, get_server_instance, args, project_root_directory, target_configuration, log_file):
         def __handle_exception(exc_type, exc_value, exc_traceback):
             logging.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
@@ -42,7 +42,7 @@ def server_start(get_server_instance, get_server_instance_args, project_root_dir
         # Instantiate and run the server
         try:
             from server import server_listener
-            server_listener(get_server_instance(handle, project_root_directory, args))
+            server_listener(get_server_instance(handle, project_root_directory, target_configuration, args))
         except:
             sys.excepthook(*sys.exc_info())
 
@@ -54,6 +54,7 @@ def server_start(get_server_instance, get_server_instance_args, project_root_dir
             get_server_instance,
             get_server_instance_args,
             project_root_directory,
+            target_configuration,
             log_file
         ),
         name="cxxd_server"

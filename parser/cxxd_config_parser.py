@@ -4,7 +4,7 @@ import logging
 import os
 
 class CxxdConfigParser():
-    def __init__(self, cxxd_config_filename):
+    def __init__(self, cxxd_config_filename, project_root_directory):
         self.indexer_blacklisted_directories = []
         self.indexer_extra_file_extensions   = []
         self.clang_tidy_args         = []
@@ -12,6 +12,7 @@ class CxxdConfigParser():
         self.clang_format_args       = []
         self.clang_format_binary_path= None
         self.project_builder_args    = []
+        self.project_root_directory = project_root_directory
         if os.path.exists(cxxd_config_filename):
             with open(cxxd_config_filename) as f:
                 config = json.load(f)
