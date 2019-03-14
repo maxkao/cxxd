@@ -46,6 +46,10 @@ class CxxdConfigParser():
     def get_configuration_type(self):
         return self.configuration_type;
 
+    def get_configuration_for_target(self, target):
+        # TODO shall we fallback to auto-discovery if no valid configuration_type was found? E.g. misspelled or in-existing?
+        return self._extract_configuration_for_target(self.configuration_selected, self.configuration_type, target)
+
     def get_blacklisted_directories(self):
         return self.indexer_blacklisted_directories
 
@@ -94,6 +98,43 @@ class CxxdConfigParser():
                 else:
                     logging.fatal('Invalid configuration-type. Must be one of {compilation-database | compile-flags | auto-discovery}')
         return config_type
+
+    def _extract_configuration_for_target(self, config, config_type, target):
+        configuration = None
+        if config_type in ['compilation-database', 'compile-flags']:
+            if 'target' in config:
+                if target in config['target']:
+                    path = os.path.join(self.project_root_directory, config['target'][target])
+                    if os.path.isdir(path):
+                        comp_db = os.path.join(path, 'compile_commands.json')
+                        comp_flags = os.path.join(self.project_root_directory, 'compile_flags.txt')
+                        if os.path.isfile(comp_db):
+                            configuration = comp_db
+                        elif os.path.isfile(comp_flags):
+                            configuration = comp_flags
+                        else:
+                            logging.error('Neither \'compile_commands.json\' nor \'compile_flags.txt\' were found under {0}'.format(path))
+        elif config_type in ['auto-discovery']:
+            if 'search-paths' in config:
+                for path in config['search-paths']:
+                    path = os.path.join(self.project_root_directory, path)
+                    logging.fatal('Looking at {0} path'.format(path))
+                    if os.path.isdir(path):
+                        comp_db = os.path.join(path, 'compile_commands.json')
+                        comp_flags = os.path.join(self.project_root_directory, 'compile_flags.txt')
+                        if os.path.isfile(comp_db):
+                            configuration = comp_db
+                            logging.info('Auto-discovery mode: found \'compile_commands.json\' under {0}'.format(path))
+                            break
+                        elif os.path.isfile(comp_flags):
+                            configuration = comp_flags
+                            logging.info('Auto-discovery mode: found \'compile_flags.txt\' under {0}'.format(path))
+                            break
+                        else:
+                            logging.info('Auto-discovery mode: nothing found under {0}'.format(path))
+        else:
+            logging.fatal('Invalid configuration-type. Must be one of {compilation-database | compile-flags | auto-discovery}')
+        return configuration
 
     def _extract_indexer_blacklisted_directories(self, config, base_dir):
         dirs = []
