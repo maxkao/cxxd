@@ -6,6 +6,7 @@ import os
 class CxxdConfigParser():
     def __init__(self, cxxd_config_filename, project_root_directory):
         self.configuration_type = None
+        self.configuration_selected = None
         self.indexer_blacklisted_directories = []
         self.indexer_extra_file_extensions   = []
         self.clang_tidy_args         = []
@@ -18,6 +19,7 @@ class CxxdConfigParser():
             with open(cxxd_config_filename) as f:
                 config = json.load(f)
                 self.configuration_type = self._extract_configuration_type(config)
+                self.configuration_selected = self._extract_configuration_selected(config, self.configuration_type)
                 self.indexer_blacklisted_directories = self._extract_indexer_blacklisted_directories(
                     config, os.path.dirname(os.path.realpath(cxxd_config_filename))
                 )
@@ -32,6 +34,7 @@ class CxxdConfigParser():
         if not self.clang_format_binary_path:
             self.clang_format_binary_path = self._find_system_wide_binary('clang-format')
         logging.info('Configuration: Type {0}'.format(self.configuration_type))
+        logging.info('Configuration: Selected {0}'.format(self.configuration_selected))
         logging.info('Indexer: Blacklisted directories {0}'.format(self.indexer_blacklisted_directories))
         logging.info('Indexer: Extra file extensions {0}'.format(self.indexer_extra_file_extensions))
         logging.info('Clang-tidy args {0}'.format(self.clang_tidy_args))
@@ -73,6 +76,13 @@ class CxxdConfigParser():
 
     def _find_system_wide_binary(self, binary_name):
         return distutils.spawn.find_executable(binary_name)
+
+    def _extract_configuration_selected(self, config, config_type):
+        config_selected = None
+        if 'configuration' in config:
+            if config_type in config['configuration']:
+                config_selected = config['configuration'][config_type]
+        return config_selected
 
     def _extract_configuration_type(self, config):
         config_type = None
