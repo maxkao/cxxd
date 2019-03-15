@@ -80,8 +80,8 @@ def server_stop_all_services(handle, *payload):
 #
 # Source code model API
 #
-def source_code_model_start(handle, compiler_args):
-    _server_start_service(handle, ServiceId.SOURCE_CODE_MODEL, compiler_args)
+def source_code_model_start(handle):
+    _server_start_service(handle, ServiceId.SOURCE_CODE_MODEL)
 
 def source_code_model_stop(handle, subscribe_for_callback):
     _server_stop_service(handle, ServiceId.SOURCE_CODE_MODEL, subscribe_for_callback)
@@ -150,8 +150,8 @@ def clang_format_request(handle, filename):
 #
 # Clang-tidy service API
 #
-def clang_tidy_start(handle, json_compilation_database):
-    _server_start_service(handle, ServiceId.CLANG_TIDY, json_compilation_database)
+def clang_tidy_start(handle):
+    _server_start_service(handle, ServiceId.CLANG_TIDY)
 
 def clang_tidy_stop(handle, subscribe_for_callback):
     _server_stop_service(handle, ServiceId.CLANG_TIDY, subscribe_for_callback)
