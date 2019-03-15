@@ -5,6 +5,12 @@ import os
 
 class CxxdConfigParser():
     def __init__(self, cxxd_config_filename, project_root_directory):
+        self.try_harder_search_paths = [
+            '.', 'build', 'build_cmake', 'cmake_build', \
+            'debug', 'dbg', 'release', 'rel', 'relwithdbg', 'minsizerel',
+            '../build', '../build_cmake', '../cmake_build',
+            '../debug', '../dbg', '../release', '../rel', '../relwithdbg', '../minsizerel'
+        ]
         self.configuration_type = None
         self.configuration_selected = None
         self.indexer_blacklisted_directories = []
@@ -47,7 +53,6 @@ class CxxdConfigParser():
         return self.configuration_type;
 
     def get_configuration_for_target(self, target):
-        # TODO shall we fallback to auto-discovery if no valid configuration_type was found? E.g. misspelled or in-existing?
         return self._extract_configuration_for_target(self.configuration_selected, self.configuration_type, target)
 
     def get_blacklisted_directories(self):
@@ -96,7 +101,17 @@ class CxxdConfigParser():
                 if cfg_type in ['compilation-database', 'compile-flags', 'auto-discovery']:
                     config_type = cfg_type
                 else:
-                    logging.fatal('Invalid configuration-type. Must be one of {compilation-database | compile-flags | auto-discovery}')
+                    logging.fatal('Invalid configuration-type. Must be one of {compilation-database | compile-flags | auto-discovery}.')
+            else:
+                config_type = 'auto-discovery-try-harder'
+        else:
+            config_type = 'auto-discovery-try-harder'
+
+        if config_type == 'auto-discovery-try-harder':
+            logging.warning('No configuration-type found! Falling back to auto-discovery-try-harder mode which will try to auto-detect'
+                            'the configuration file on the following hard-coded search-paths: \'{0}\'.'.format(self.try_harder_search_paths))
+            logging.warning('It is recommended though to define configuration-type yourself providing correct search paths through .cxxd_config.json file.')
+
         return config_type
 
     def _extract_configuration_for_target(self, config, config_type, target):
@@ -132,6 +147,27 @@ class CxxdConfigParser():
                             break
                         else:
                             logging.info('Auto-discovery mode: nothing found under {0}'.format(path))
+                if configuration is None:
+                    logging.error('Neither \'compile_commands.json\' nor \'compile_flags.txt\' were found with auto-discovery mode. Make sure one of these files exist on given location(s).')
+        elif config_type in ['auto-discovery-try-harder']:
+            for path in self.try_harder_search_paths:
+                path = os.path.join(self.project_root_directory, path)
+                logging.info('Looking at {0} path'.format(path))
+                if os.path.isdir(path):
+                    comp_db = os.path.join(path, 'compile_commands.json')
+                    comp_flags = os.path.join(self.project_root_directory, 'compile_flags.txt')
+                    if os.path.isfile(comp_db):
+                        configuration = comp_db
+                        logging.info('Auto-discovery-try-harder mode: found \'compile_commands.json\' under {0}'.format(path))
+                        break
+                    elif os.path.isfile(comp_flags):
+                        configuration = comp_flags
+                        logging.info('Auto-discovery-try-harder mode: found \'compile_flags.txt\' under {0}'.format(path))
+                        break
+                    else:
+                        logging.info('Auto-discovery-try-harder mode: nothing found under {0}'.format(path))
+            if configuration is None:
+                logging.error('Neither \'compile_commands.json\' nor \'compile_flags.txt\' were found with auto-discovery-try-harder mode. Make sure one of these files exist on given location(s).')
         else:
             logging.fatal('Invalid configuration-type. Must be one of {compilation-database | compile-flags | auto-discovery}')
         return configuration
