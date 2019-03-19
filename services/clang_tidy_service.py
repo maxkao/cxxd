@@ -15,7 +15,7 @@ class ClangTidy(cxxd.service.Service):
            self.cxxd_config_parser.get_clang_tidy_args()
         )
         self.clang_tidy_binary = self.cxxd_config_parser.get_clang_tidy_binary_path()
-        self.clang_tidy_success_code = 0
+        self.clang_tidy_success_code = 1
         self.clang_tidy_output = None
         if self.clang_tidy_binary:
             compilation_database = self.cxxd_config_parser.get_configuration_for_target(target)
