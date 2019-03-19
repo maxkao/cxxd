@@ -1,3 +1,5 @@
+import os
+import tempfile
 import unittest
 
 from file_generator import FileGenerator
@@ -6,8 +8,10 @@ from parser.cxxd_config_parser import CxxdConfigParser
 class CxxdConfigParserTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.cxxd_config = FileGenerator.gen_cxxd_config_filename()
-        cls.empty_cxxd_config = FileGenerator.gen_empty_cxxd_config_filename()
+        cls.json_compilation_database = FileGenerator.gen_json_compilation_database('doesnt_matter.cpp')
+        cls.cxxd_config               = FileGenerator.gen_cxxd_config_filename('debug', os.path.dirname(cls.json_compilation_database.name))
+        cls.empty_cxxd_config         = FileGenerator.gen_empty_cxxd_config_filename()
+        cls.project_root_directory    = tempfile.gettempdir()
 
     @classmethod
     def tearDownClass(cls):
@@ -17,9 +21,9 @@ class CxxdConfigParserTest(unittest.TestCase):
     def setUp(self):
         import cxxd_mocks
         from services.clang_format_service import ClangFormat
-        self.parser = CxxdConfigParser(self.cxxd_config.name)
-        self.parser_with_empty_config_file = CxxdConfigParser(self.empty_cxxd_config.name)
-        self.parser_with_inexisting_config_file = CxxdConfigParser('some_inexisting_cxxd_config_filename')
+        self.parser = CxxdConfigParser(self.cxxd_config.name, self.project_root_directory)
+        self.parser_with_empty_config_file = CxxdConfigParser(self.empty_cxxd_config.name, self.project_root_directory)
+        self.parser_with_inexisting_config_file = CxxdConfigParser('some_inexisting_cxxd_config_filename', self.project_root_directory)
 
     def test_if_cxxd_config_parser_returns_empty_blacklisted_dir_list_for_inexisting_cxxd_config_file(self):
         self.assertEqual(self.parser_with_inexisting_config_file.get_blacklisted_directories(), [])
