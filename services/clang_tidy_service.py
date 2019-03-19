@@ -18,16 +18,19 @@ class ClangTidy(cxxd.service.Service):
         self.clang_tidy_success_code = 1
         self.clang_tidy_output = None
         if self.clang_tidy_binary:
-            compilation_database = self.cxxd_config_parser.get_configuration_for_target(target)
+            configuration = self.cxxd_config_parser.get_configuration_for_target(target)
             self.clang_tidy_output = tempfile.NamedTemporaryFile(suffix='_clang_tidy_output')
-            root, ext = os.path.splitext(compilation_database)
-            if ext == '.json':
-                self.clang_tidy_compile_flags = '-p ' + compilation_database            # In case we have a JSON compilation database we simply use one
-                logging.info('clang-tidy will extract compiler flags from existing JSON database.')
-            elif ext == '.txt':
-                with open(compilation_database) as f:
-                    self.clang_tidy_compile_flags = '-- ' + f.read().replace('\n', ' ') # Otherwise we provide compilation flags inline
-                logging.info('clang-tidy will use compiler flags given inline: \'{0}\'.'.format(self.clang_tidy_compile_flags))
+            if configuration:
+                root, ext = os.path.splitext(configuration)
+                if ext == '.json':
+                    self.clang_tidy_compile_flags = '-p ' + configuration            # In case we have a JSON compilation database we simply use one
+                    logging.info('clang-tidy will extract compiler flags from existing JSON database.')
+                elif ext == '.txt':
+                    with open(configuration) as f:
+                        self.clang_tidy_compile_flags = '-- ' + f.read().replace('\n', ' ') # Otherwise we provide compilation flags inline
+                    logging.info('clang-tidy will use compiler flags given inline: \'{0}\'.'.format(self.clang_tidy_compile_flags))
+                else:
+                    logging.error('clang-tidy requires compiler flags to be provided either inline or via JSON compilation database.')
             else:
                 logging.error('clang-tidy requires compiler flags to be provided either inline or via JSON compilation database.')
             logging.info('clang-tidy version: \'{0}\''.format(subprocess.check_output([self.clang_tidy_binary, '-version'])))
