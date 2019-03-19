@@ -64,7 +64,7 @@ class Server():
             else:
                 logging.warning("Service process must be started before issuing any kind of requests!")
 
-    def __init__(self, handle, project_root_directory, target, source_code_model_plugin, project_builder_plugin, clang_format_plugin, clang_tidy_plugin, code_completion_plugin):
+    def __init__(self, handle, project_root_directory, target, source_code_model_plugin, project_builder_plugin, clang_format_plugin, clang_tidy_plugin):
         self.handle = handle
         self.cxxd_config_filename = '.cxxd_config.json'
         self.cxxd_config_parser = CxxdConfigParser(os.path.join(project_root_directory, self.cxxd_config_filename), project_root_directory)
