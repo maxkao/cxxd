@@ -11,15 +11,15 @@ class CxxdConfigParser():
             '../build', '../build_cmake', '../cmake_build',
             '../debug', '../dbg', '../release', '../rel', '../relwithdbg', '../minsizerel'
         ]
-        self.configuration_type = None
+        self.configuration_type = 'auto-discovery-try-harder' # This is the default mode even when there is NO configuration file
         self.configuration_selected = None
         self.indexer_blacklisted_directories = []
-        self.indexer_extra_file_extensions   = []
-        self.clang_tidy_args         = []
-        self.clang_tidy_binary_path  = None
-        self.clang_format_args       = []
+        self.indexer_extra_file_extensions = []
+        self.clang_tidy_args = []
+        self.clang_tidy_binary_path = None
+        self.clang_format_args = []
         self.clang_format_binary_path= None
-        self.project_builder_args    = []
+        self.project_builder_args = []
         self.project_root_directory = project_root_directory
         if os.path.exists(cxxd_config_filename):
             with open(cxxd_config_filename) as f:
