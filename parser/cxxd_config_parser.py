@@ -122,7 +122,7 @@ class CxxdConfigParser():
                     path = os.path.join(self.project_root_directory, config['target'][target])
                     if os.path.isdir(path):
                         comp_db = os.path.join(path, 'compile_commands.json')
-                        comp_flags = os.path.join(self.project_root_directory, 'compile_flags.txt')
+                        comp_flags = os.path.join(path, 'compile_flags.txt')
                         if os.path.isfile(comp_db):
                             configuration = comp_db
                         elif os.path.isfile(comp_flags):
@@ -136,7 +136,7 @@ class CxxdConfigParser():
                     logging.fatal('Looking at {0} path'.format(path))
                     if os.path.isdir(path):
                         comp_db = os.path.join(path, 'compile_commands.json')
-                        comp_flags = os.path.join(self.project_root_directory, 'compile_flags.txt')
+                        comp_flags = os.path.join(path, 'compile_flags.txt')
                         if os.path.isfile(comp_db):
                             configuration = comp_db
                             logging.info('Auto-discovery mode: found \'compile_commands.json\' under {0}'.format(path))
@@ -155,7 +155,7 @@ class CxxdConfigParser():
                 logging.info('Looking at {0} path'.format(path))
                 if os.path.isdir(path):
                     comp_db = os.path.join(path, 'compile_commands.json')
-                    comp_flags = os.path.join(self.project_root_directory, 'compile_flags.txt')
+                    comp_flags = os.path.join(path, 'compile_flags.txt')
                     if os.path.isfile(comp_db):
                         configuration = comp_db
                         logging.info('Auto-discovery-try-harder mode: found \'compile_commands.json\' under {0}'.format(path))
