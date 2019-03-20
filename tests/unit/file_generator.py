@@ -150,6 +150,13 @@ TabWidth: 4                             \n\
         return fd
 
     @staticmethod
+    def gen_cxxd_config_filename_with_invalid_section(sections):
+        fd = open(tempfile.gettempdir() + os.path.sep + '.cxxd_config.json', 'w', 0)
+        for section in sections:
+            fd.write(section)
+        return fd
+
+    @staticmethod
     def gen_cxxd_config_filename(target, config_path, config_type='compilation-database'):
         fd = open(tempfile.gettempdir() + os.path.sep + '.cxxd_config.json', 'w', 0)
         fd.write('\
@@ -189,6 +196,7 @@ TabWidth: 4                             \n\
          ]                                      \n\
     },                                          \n\
     "clang-tidy" : {                            \n\
+        "path": "clang-tidy",                   \n\
         "args": {                               \n\
             "-analyze-temporary-dtors" : true,  \n\
             "-explain-config" : false,          \n\
@@ -196,6 +204,7 @@ TabWidth: 4                             \n\
         }                                       \n\
     },                                          \n\
     "clang-format" : {                          \n\
+        "path": "clang-format",                 \n\
         "args": {                               \n\
             "-sort-includes" : true,            \n\
             "-style" : "llvm",                  \n\
