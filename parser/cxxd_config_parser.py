@@ -18,7 +18,7 @@ class CxxdConfigParser():
         self.clang_tidy_args = []
         self.clang_tidy_binary_path = None
         self.clang_format_args = []
-        self.clang_format_binary_path= None
+        self.clang_format_binary_path = None
         self.project_builder_args = []
         self.project_root_directory = project_root_directory
         if os.path.exists(cxxd_config_filename):
@@ -117,7 +117,7 @@ class CxxdConfigParser():
     def _extract_configuration_for_target(self, config, config_type, target):
         configuration = None
         if config_type in ['compilation-database', 'compile-flags']:
-            if 'target' in config:
+            if config and 'target' in config:
                 if target in config['target']:
                     path = os.path.join(self.project_root_directory, config['target'][target])
                     if os.path.isdir(path):
@@ -130,7 +130,7 @@ class CxxdConfigParser():
                         else:
                             logging.error('Neither \'compile_commands.json\' nor \'compile_flags.txt\' were found under {0}'.format(path))
         elif config_type in ['auto-discovery']:
-            if 'search-paths' in config:
+            if config and 'search-paths' in config:
                 for path in config['search-paths']:
                     path = os.path.join(self.project_root_directory, path)
                     logging.fatal('Looking at {0} path'.format(path))
