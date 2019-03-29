@@ -14,13 +14,13 @@ class Service():
             0x2 : self.__request
         }
         self.started_up = False
-        logging.info("Actions: {0}".format(self.action))
+        logging.debug("Actions: {0}".format(self.action))
 
     def __startup_request(self, payload):
         if self.started_up:
             logging.warning('Service is already started!')
         else:
-            logging.info("Service startup ... Payload = {0}".format(payload))
+            logging.debug("Service startup ... Payload = {0}".format(payload))
             self.startup_callback(payload)
             self.service_plugin.startup_callback(True, payload)
             self.started_up = True
@@ -28,7 +28,7 @@ class Service():
 
     def __shutdown_request(self, payload):
         if self.started_up:
-            logging.info("Service shutdown ... Payload = {0}".format(payload))
+            logging.debug("Service shutdown ... Payload = {0}".format(payload))
             self.shutdown_callback(payload)
             self.service_plugin.shutdown_callback(True, payload)
             self.started_up = False
@@ -38,7 +38,7 @@ class Service():
 
     def __request(self, payload):
         if self.started_up:
-            logging.info("Service request ... Payload = {0}".format(payload))
+            logging.debug("Service request ... Payload = {0}".format(payload))
             success, args = self.__call__(payload)
             self.service_plugin.__call__(success, payload, args)
         else:
